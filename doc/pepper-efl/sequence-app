@@ -1,0 +1,40 @@
+@startuml
+actor home
+
+participant pepper_efl 
+participant pepper
+participant widget_client 
+
+home->home : win create\nsmart_callback_add (win, "object.add")\nsmart_callback_add (win, "object.delete")
+home->pepper_efl : pepper_efl_compositor_init(win, name)
+pepper_efl->pepper : create compositor
+
+widget_client->widget_client : elm_win_add
+widget_client->pepper : wl_surface_commit
+pepper->pepper_efl : SURFACE_COMMIT
+pepper_efl->pepper_efl : create smart_object "img"
+pepper_efl->home : smart_callback (win, "object.add", img)
+home->pepper_efl : evas_object_show(img)
+pepper_efl->pepper_efl : repaint
+
+alt resize
+home->pepper_efl : evas_object_resize(img, w, h)
+pepper_efl->widget_client : send RESIZE_EVENT
+widget_client->widget_client : update buffer
+widget_client->pepper : wl_surface_commit
+pepper->pepper_efl : SURFACE_COMMIT
+pepper_efl->pepper_efl : repaint
+end
+
+alt delete
+widget_client->widget_client : evas_object_del(win)
+widget_client->pepper : wl_surface_destroy
+pepper->pepper_efl : SURFACE_REMOVE
+pepper_efl -> home : smart callback (win, "object.del", img) 
+home -> pepper_efl : evas_object_del(img)
+pepper_efl -> pepper_efl : clean up resource
+end
+
+home->pepper_efl : pepper_efl_compositor_deinit(name)
+pepper_efl->pepper : destroy compositor
+@enduml

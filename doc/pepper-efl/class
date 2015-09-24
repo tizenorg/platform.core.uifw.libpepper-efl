@@ -1,0 +1,18 @@
+@startuml
+
+class pepper_efl_compositor
+class pepper_efl_output
+class pepper_efl_shell
+
+pepper_efl_compositor *- pepper_compositor
+pepper_efl_compositor *- pepper_efl_shell
+pepper_efl_compositor *- pepper_efl_output
+pepper_output <|-- pepper_efl_output
+wl_shell <|-- pepper_efl_shell
+
+class evas_object_smart
+class evas_smart_wl_surface
+evas_object_smart <|-- evas_smart_wl_surface
+evas_smart_wl_surface *- pepper_surface
+
+@enduml

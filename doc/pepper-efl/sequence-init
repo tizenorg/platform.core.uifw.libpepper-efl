@@ -1,0 +1,21 @@
+@startuml
+actor user
+
+user->pepper_efl_compositor : pepper_efl_compositor_init(name)
+create pepper_compositor
+pepper_efl_compositor -> pepper_compositor : new
+
+create pepper_efl_shell
+pepper_efl_compositor -> pepper_efl_shell : new
+pepper_efl_compositor -> pepper_efl_compositor : Add fd to ecore
+pepper_efl_compositor -> pepper_compositor: Add event listener
+note right
+    PEPPER_EVENT_COMPOSITOR_SURFACE_ADD,
+    PEPPER_EVENT_COMPOSITOR_SURFACE_REMOVE,
+endnote
+pepper_efl_compositor -> user : return
+
+create pepper_efl_output
+user -> pepper_efl_output : pepper_efl_compositor_output_add(evas_object* win)
+pepper_efl_output -> pepper_compositor : add output
+@enduml

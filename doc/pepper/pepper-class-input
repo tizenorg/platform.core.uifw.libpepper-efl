@@ -1,0 +1,32 @@
+@startuml
+class pepper_object_t
+class pepper_compositor_t
+class pepper_seat_t
+class pepper_pointer_t
+class pepper_keyboard_t
+class pepper_touch_t
+class pepper_input_device_t
+
+pepper_object_t <|-- pepper_compositor_t
+pepper_object_t <|-- pepper_seat_t
+pepper_object_t <|-- pepper_pointer_t
+pepper_object_t <|-- pepper_keyboard_t
+pepper_object_t <|-- pepper_touch_t
+pepper_object_t <|-- pepper_input_device_t
+pepper_input_device_t <|-- X11::pointer
+pepper_input_device_t <|-- X11::key
+pepper_input_device_t <|-- WAYLAND::pointer
+pepper_input_device_t <|-- WAYLAND::key
+
+pepper_compositor_t "1"*--"*"pepper_seat_t
+pepper_seat_t "1"*--"1" pepper_pointer_t
+pepper_seat_t "1"*--"1" pepper_keyboard_t
+pepper_seat_t "1"*--"1" pepper_touch_t
+pepper_seat_t "1"*--"*" wl_resource::wl_seat
+pepper_seat_t "1"*--"1" wl_global::wl_seat_interface
+pepper_seat_t "1"*--"*" pepper_input_device_t
+
+pepper_pointer_t "1"*--"*" wl_resource::wl_pointer
+pepper_keyboard_t "1"*--"*" wl_resource::wl_keyboard
+pepper_touch_t "1"*--"*" wl_resource::wl_touch
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+
+title wl_shell_surface create
+
+actor user
+participant compositor<<pepper>>
+participant shell<<pepper>>
+
+user->compositor:bind wl_shell
+compositor->shell:bind_shell
+shell->shell:shell_client_create
+user->shell:wl_shell_get_shell_surface
+shell->surface: pepper_surface_set_role()
+create shell_surface
+shell->shell_surface: shell_surface_create(surface)
+
+create view
+shell_surface->view: create and add to compositor
+shell_surface->surface:add_event_listener:PEPPER_EVENT_OBJECT_DESTROY
+shell_surface->shell_surface
+note right
+	set init values
+	type:SHELL_SURFACE_TYPE_NONE
+	child, parent
+endnote
+shell_surface->surface:add_event_listener:PEPPER_EVENT_SURFACE_COMMIT
+shell_surface->shell_surface: Set send_configure callback by role
+note left
+role
+wl_shell_surface
+xdg_surface
+xdg_popup
+endnote
+
+@enduml

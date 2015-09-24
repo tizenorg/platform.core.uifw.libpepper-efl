@@ -1,0 +1,82 @@
+@startuml
+title surface update
+
+actor user
+user->user : update buffer
+user->surface: wl_surface_attach(wl_buffer)
+alt new buffer
+	create buffer
+	surface -> buffer: pepper_buffer_from_resoure(wl_buffer)
+end
+surface->surface : set to pending state, newly_attached:1
+
+user->surface: wl_surface_damage
+surface->surface : add to pending.damage_region
+user->surface: wl_surface_commit
+
+surface->surface: pepper_surface_commit
+activate surface
+alt newly_attached==1
+	alt buffer.buffer
+		surface->surface: buffer unreference(buffer)
+		surface->surface: event_listener_remove
+	end
+	alt pending.buffer
+		surface->buffer: refernece
+		surface->buffer: add destroy_listener::PEPPER_EVENT_OBJECT_DESTROY
+	end
+	surface->surface : Set buffer.buffer from pending.buffer
+	
+	surface->surface : attach_surface_to_outputs
+	activate surface
+		loop compositor::output_list
+			surface -> output: attach_surface(surface, &w, &h)
+			surface -> surface: set buffer.buffer w,h
+		end
+	deactivate surface
+end
+
+surface->surface : Set buffer.transform,scale, frame_callback from pending
+surface->surface : update_size
+activate surface
+	note right
+		set w,h of surface from 
+		buffer size, scale and transform
+	endnote
+deactivate surface
+
+surface->surface : update damage_region
+surface->surface : pepper_surface_flush_damage
+activate surface
+	loop surface->view_list
+		surface->view : pepper_view_surface_damage
+		loop view->planes
+			view->plane: pepper_plane_add_damage_region
+			plane->plane: update damage_region
+			plane->output: pepper_output_schedule_repaint
+			output->output: add idle_repaint
+			note left
+				For screen update
+			endnote
+		end
+	end
+	
+	loop surface->compositor->output_list
+		surface->output : backend->flush_surface
+	end
+deactivate surface
+[<-surface :  PEPPER_EVENT_SURFACE_COMMIT
+deactivate surface
+
+[->shell_surface : PEPPER_EVENT_SURFACE_COMMIT
+shell_surface -> shell_surface: Call surface_map function for type
+note right
+    SHELL_SURFACE_TYPE_NONE,
+    SHELL_SURFACE_TYPE_TOPLEVEL,
+    SHELL_SURFACE_TYPE_TRANSIENT,
+    SHELL_SURFACE_TYPE_FULLSCREEN,
+    SHELL_SURFACE_TYPE_POPUP,
+    SHELL_SURFACE_TYPE_MAXIMIZED,
+    SHELL_SURFACE_TYPE_MINIMIZED,
+endnote
+@enduml
