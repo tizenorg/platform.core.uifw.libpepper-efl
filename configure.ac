@@ -17,10 +17,21 @@ PKG_CHECK_MODULES([PEPPER], [pepper])
 PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server])
 PKG_CHECK_MODULES([EFL], [eina ecore evas])
 
+
+AC_ARG_ENABLE([examples],
+   [AS_HELP_STRING([--enable-examples], [build examples, @<:@default=disabled@:>@])],
+   [
+    if test "x${enableval}" = "xyes"; then
+       PKG_CHECK_MODULES([ELEMENTARY], [elementary])
+       AM_CONDITIONAL([BUILD_EXAMPLES], [true])
+    fi
+   ])
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/lib/Makefile
+src/examples/Makefile
 ])
 AC_OUTPUT([
 libpepper-efl.pc

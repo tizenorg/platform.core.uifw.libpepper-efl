@@ -30,3 +30,4 @@ Session.vim
 tags
 cscope.out
 build.log
+src/examples/pepper_efl_example
