@@ -15,19 +15,13 @@ AC_PROG_LIBTOOL
 # Checks for libraries.
 PKG_CHECK_MODULES([PEPPER], [pepper])
 PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server])
-PKG_CHECK_MODULES([EFL], [elementary])
-
-# Checks for header files.
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_UINT32_T
-
-# Checks for library functions.
+PKG_CHECK_MODULES([EFL], [eina ecore evas])
 
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+src/lib/Makefile
 ])
 AC_OUTPUT([
-src/libpepper-efl.pc
+libpepper-efl.pc
 ])

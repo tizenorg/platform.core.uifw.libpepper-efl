@@ -68,10 +68,11 @@ _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
    if (po->img)
      {
         shsurf = pepper_object_get_user_data((pepper_object_t *)po->es->surface,
-                                             PEPPER_EFL_SHELL_SURFACE_KEY);
+                                             pepper_surface_get_role(po->es->surface));
         if (!shsurf)
           {
              DBG("failed to get shsurf");
+             evas_object_resize(po->img, w, h);
              return;
           }
 

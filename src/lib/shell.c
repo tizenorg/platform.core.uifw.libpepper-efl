@@ -257,8 +257,10 @@ xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource,
 
    shsurf->mapped = EINA_FALSE;
 
+   pepper_surface_set_role(surface, "xdg_surface");
+
    pepper_object_set_user_data((pepper_object_t *)surface,
-                               PEPPER_EFL_SHELL_SURFACE_KEY, shsurf, NULL);
+                               pepper_surface_get_role(surface), shsurf, NULL);
 
    return;
 err:
