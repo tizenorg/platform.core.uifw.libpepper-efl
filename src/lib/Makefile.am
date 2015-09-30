@@ -18,6 +18,6 @@ shell.c			\
 input.c			\
 object.c
 
-libeomincludedir = $(includedir)/pepper-efl
-libeominclude_HEADERS = \
+libpeppereflincludedir = $(includedir)/pepper-efl
+libpeppereflinclude_HEADERS = \
 Pepper_Efl.h
