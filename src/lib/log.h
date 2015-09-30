@@ -7,16 +7,16 @@
 extern "C" {
 #endif
 
-extern int _pe_log_domain;
+extern int _log_domain;
 
-#define DBG(...)  EINA_LOG_DOM_DBG(_pe_log_domain, __VA_ARGS__)
-#define INF(...)  EINA_LOG_DOM_INFO(_pe_log_domain, __VA_ARGS__)
-#define WRN(...)  EINA_LOG_DOM_WARN(_pe_log_domain, __VA_ARGS__)
-#define ERR(...)  EINA_LOG_DOM_ERR(_pe_log_domain, __VA_ARGS__)
-#define CRI(...)  EINA_LOG_DOM_CRIT(_pe_log_domain, __VA_ARGS__)
+#define DBG(...)  EINA_LOG_DOM_DBG(_log_domain, __VA_ARGS__)
+#define INF(...)  EINA_LOG_DOM_INFO(_log_domain, __VA_ARGS__)
+#define WRN(...)  EINA_LOG_DOM_WARN(_log_domain, __VA_ARGS__)
+#define ERR(...)  EINA_LOG_DOM_ERR(_log_domain, __VA_ARGS__)
+#define CRI(...)  EINA_LOG_DOM_CRIT(_log_domain, __VA_ARGS__)
 
-int   pe_log_init(const char *domain);
-void  pe_log_shutdown(void);
+int   pepper_efl_log_init(const char *domain);
+void  pepper_efl_log_shutdown(void);
 
 #ifdef __cplusplus
 }

@@ -81,7 +81,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
      }
    else
      {
-        if (!pe_log_init("pepper-efl"))
+        if (!pepper_efl_log_init("pepper-efl"))
           return EINA_FALSE;
 
         comp_hash = eina_hash_string_superfast_new(NULL);
