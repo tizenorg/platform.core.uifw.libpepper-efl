@@ -58,6 +58,8 @@ pepper_efl_compositor_destroy(const char *name)
    EINA_LIST_FOREACH(comp->output_list, l, output)
       pepper_output_destroy(output->base);
 
+   pepper_efl_shell_shutdown();
+
    PE_FREE_FUNC(comp->name, eina_stringshare_del);
    PE_FREE_FUNC(comp->pepper.comp, pepper_compositor_destroy);
    PE_FREE_FUNC(comp->fd_hdlr, ecore_main_fd_handler_del);
