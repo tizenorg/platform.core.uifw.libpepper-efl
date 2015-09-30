@@ -41,7 +41,6 @@ struct pepper_efl_comp
 
 #define DEBUG
 
-#define PEPPER_EFL_SHELL_SURFACE_KEY   "pepper_efl_shell_surface"
 #define PEPPER_EFL_SURFACE_KEY         "pepper_efl_surface"
 
 #define PE_FREE_FUNC(_h, _fn) do { if (_h) { _fn((void*)_h); _h = NULL; } } while (0)

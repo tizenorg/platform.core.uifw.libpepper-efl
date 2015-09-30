@@ -8,7 +8,7 @@ _pepper_efl_surface_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Ob
    pepper_efl_shell_surface_t *shsurf;
 
    shsurf = pepper_object_get_user_data((pepper_object_t *)es->surface,
-                                        PEPPER_EFL_SHELL_SURFACE_KEY);
+                                        pepper_surface_get_role(es->surface));
 
    if (!shsurf)
      return;

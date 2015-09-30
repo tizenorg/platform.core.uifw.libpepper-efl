@@ -31,7 +31,7 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
    if (shsurf->resource)
      wl_resource_destroy(shsurf->resource);
 
-   pepper_object_set_user_data(surface, PEPPER_EFL_SHELL_SURFACE_KEY, NULL, NULL);
+   pepper_object_set_user_data(surface, pepper_surface_get_role(surface), NULL, NULL);
 
    free(shsurf);
 }
