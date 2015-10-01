@@ -34,4 +34,6 @@ make %{?_smp_mflags}
 %{_libdir}/libpepper-efl.so.*
 %{_libdir}/libpepper-efl.so
 %{_libdir}/pkgconfig/libpepper-efl.pc
-%{_bindir}/pepper_efl_example
+%{_bindir}/*
+%{_libexecdir}/*
+%{_datadir}/%{name}

@@ -26,6 +26,8 @@ struct
 
 Evas_Object *moving_obj;
 int app_num;
+int now_moving = 0;
+int block_flag = 0;
 
 
 static int diff(int a, int b)
@@ -43,8 +45,6 @@ static int min(int a, int b)
 static void
 _img_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
-   printf("delete!\n");
-   evas_object_del(obj);
 }
 
 static void
@@ -62,6 +62,14 @@ _reset_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 static void
 _add_object_cb (void *d, Evas_Object *obj, void *event_info)
 {
+   if (block_flag)
+     {
+        block_flag = 0;
+        return;
+     }
+
+   block_flag = 1;
+
    Evas_Object *img = event_info;
    int x, y, w, h;
 
@@ -73,7 +81,7 @@ _add_object_cb (void *d, Evas_Object *obj, void *event_info)
         Evas_Object *tb = data->tb;
 
 
-        evas_object_smart_callback_add(img, "clicked", _img_mouse_down_cb, NULL);
+        //evas_object_smart_callback_add(img, "clicked", _img_mouse_down_cb, NULL);
 
         width_c = 1 + diff(coor_info.down_col, coor_info.up_col);
         height_c = 1 + diff(coor_info.down_row, coor_info.up_row);
@@ -105,10 +113,28 @@ _del_object_cb (void *d, Evas_Object *obj, void *event_info)
 
 static void client_launch()
 {
-   if (!app_num)
-     system("./run_shm.sh");
-   else
-     system("./run_damage.sh");
+
+   pid_t pid;
+   char path[64];
+  
+   pid = fork();
+
+
+   if (pid == 0)
+     {
+        setenv("XDG_RUNTIME_DIR", "/tmp", 1);
+
+        if (!app_num)
+          {
+             sprintf(path, "%s/touch_sample", SAMPLE_PATH);
+             execl(path, "touch_sample", NULL);
+          }
+        else
+          {
+             sprintf(path, "%s/thread_sample", SAMPLE_PATH);
+             execl(path, "thread_sample", NULL);
+          }
+     }
 }
 
 static void ret_index(int x, int y, int *row, int *col)
@@ -136,8 +162,9 @@ static void _table_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info
 
 
    elm_table_unpack(tb, moving_obj);
-   evas_object_del(moving_obj);
-   moving_obj = NULL;
+   //evas_object_del(moving_obj);
+   now_moving = 0;
+   evas_object_hide(moving_obj);
 
 
    client_launch();
@@ -147,7 +174,8 @@ static void _table_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info
 
 static void _table_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
-   if (!moving_obj) return;
+   //if (!moving_obj) return;
+   if (!now_moving) return;
 
    int row, col;
    int diff_x, diff_y;
@@ -158,8 +186,6 @@ static void _table_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 
    coor_info.up_row = row;
    coor_info.up_col = col;
-
-   //printf("%d %d\n", row, col);
 
 
    diff_x = diff(coor_info.up_col, coor_info.down_col);
@@ -177,6 +203,9 @@ static void _table_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 {
    int x, y;
    Evas_Object *m, *tb;
+   char border_path[64];
+
+   sprintf(border_path, "%s/red.png", DATA_PATH);
 
    tb = data;
 
@@ -185,16 +214,18 @@ static void _table_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
    coor_info.down_row = y;
    coor_info.down_col = x;
 
-   moving_obj = evas_object_image_filled_add(evas_object_evas_get(tb));
-   evas_object_image_file_set(moving_obj, "/usr/share/homeapp/red.png", NULL);
-   evas_object_image_border_set(moving_obj, 2, 2, 2, 2);
-   evas_object_image_border_center_fill_set(moving_obj, EVAS_BORDER_FILL_NONE);
-   
-   evas_object_size_hint_align_set(moving_obj, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   if (!moving_obj)
+     {
+        moving_obj = evas_object_image_filled_add(evas_object_evas_get(tb));
+        evas_object_image_file_set(moving_obj, border_path, NULL);
+        evas_object_image_border_set(moving_obj, 2, 2, 2, 2);
+        evas_object_image_border_center_fill_set(moving_obj, EVAS_BORDER_FILL_NONE);
 
-   elm_table_pack(tb, moving_obj, x, y, 1, 1);
-
+        evas_object_size_hint_align_set(moving_obj, EVAS_HINT_FILL, EVAS_HINT_FILL);
+     }
+   now_moving = 1;
    evas_object_show(moving_obj);
+   elm_table_pack(tb, moving_obj, x, y, 1, 1);
 
 }
 
@@ -233,12 +264,13 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    app_data *d;
    Evas_Object *win;
    Evas_Object *tb;
-   Evas_Object *bx, *upper_bx, *mid_bx, *bt, *bt2, *bt3;
+   Evas_Object *bx, *upper_bx, *mid_bx, *bt, *bt2, *reset_bt;
    Evas_Object *mid_bx_bg;
    char *comp_name;
    int i, j;
 
    int ret = EXIT_FAILURE;
+   setenv("XDG_RUNTIME_DIR", "/run", 1);
 
    d = calloc(1, sizeof(app_data));
 
@@ -262,7 +294,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 
    //buttons
    bt = elm_button_add(win);
-   elm_object_text_set(bt, "SIMPLE_SHM");
+   elm_object_text_set(bt, "TOUCH");
    evas_object_smart_callback_add(bt, "clicked", _button_cb, NULL);
    elm_box_pack_end(upper_bx, bt);
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -271,20 +303,21 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 
 
    bt2 = elm_button_add(win);
-   elm_object_text_set(bt2, "SCALER");
+   elm_object_text_set(bt2, "THREAD");
    evas_object_smart_callback_add(bt2, "clicked", _button2_cb, NULL);
    elm_box_pack_end(upper_bx, bt2);
    evas_object_size_hint_weight_set(bt2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(bt2, EVAS_HINT_FILL, EVAS_HINT_FILL);
    evas_object_show(bt2);
 
-   bt3 = elm_button_add(win);
-   elm_object_text_set(bt3, "RESET");
-   evas_object_smart_callback_add(bt3, "clicked", _reset_cb, d);
-   elm_box_pack_end(upper_bx, bt3);
-   evas_object_size_hint_weight_set(bt3, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(bt3, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(bt3);
+   reset_bt = elm_button_add(win);
+   elm_object_text_set(reset_bt, "RESET");
+   evas_object_smart_callback_add(reset_bt, "clicked", _reset_cb, d);
+   elm_box_pack_end(upper_bx, reset_bt);
+   evas_object_size_hint_weight_set(reset_bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   evas_object_size_hint_align_set(reset_bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   evas_object_show(reset_bt);
+
 
    //under box
    mid_bx = elm_box_add(win);
