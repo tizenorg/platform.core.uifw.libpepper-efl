@@ -23,9 +23,13 @@ AC_ARG_ENABLE([examples],
    [
     if test "x${enableval}" = "xyes"; then
        PKG_CHECK_MODULES([ELEMENTARY], [elementary])
-       AM_CONDITIONAL([BUILD_EXAMPLES], [true])
+       want_build_examples="yes"
+    else
+       want_build_examples="no"
     fi
-   ])
+   ],
+   [want_build_examples="no"])
+AM_CONDITIONAL([BUILD_EXAMPLES], [test "${want_build_examples}" = "yes"])
 
 AC_CONFIG_FILES([
 Makefile
