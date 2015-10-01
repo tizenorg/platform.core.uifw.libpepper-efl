@@ -83,8 +83,11 @@ _pepper_efl_surface_cb_destroy(pepper_event_listener_t *listener EINA_UNUSED, pe
    pepper_efl_surface_t *es = data;
 
    evas_object_smart_callback_call(es->output->win, PEPPER_EFL_OBJ_DEL, (void *)es->obj);
-   pepper_efl_object_buffer_release(es->obj);
-   PE_FREE_FUNC(es->obj, evas_object_del);
+}
+
+void
+pepper_efl_surface_destroy(pepper_efl_surface_t *es)
+{
    pepper_event_listener_remove(es->surface_destroy_listener);
    pepper_object_set_user_data((pepper_object_t *)es->surface,
                                (const void *)es->output, NULL, NULL);

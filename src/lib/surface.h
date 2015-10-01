@@ -20,5 +20,6 @@ struct pepper_efl_surface
 };
 
 pepper_efl_surface_t *pepper_efl_surface_get(pepper_efl_output_t *output, pepper_surface_t *surface);
+void                  pepper_efl_surface_destroy(pepper_efl_surface_t *es);
 
 #endif

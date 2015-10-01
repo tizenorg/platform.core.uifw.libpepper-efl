@@ -34,6 +34,12 @@ _pepper_efl_smart_del(Evas_Object *obj)
    OBJ_DATA_GET;
 
    DBG("[OBJECT] Del: obj %p", obj);
+
+   pepper_efl_object_buffer_release(obj);
+
+   pepper_efl_surface_destroy(po->es);
+   evas_object_del(po->img);
+   free(po);
 }
 
 static void
@@ -53,6 +59,7 @@ _cb_configure_done(void *data, int w, int h)
 
    DBG("[OBJECT] Callback configure done: w %d, h %d", w, h);
 
+   evas_object_image_size_set(img, w, h);
    evas_object_resize(img, w, h);
 }
 
@@ -72,6 +79,7 @@ _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
         if (!shsurf)
           {
              DBG("failed to get shsurf");
+             evas_object_image_size_set(po->img, w, h);
              evas_object_resize(po->img, w, h);
              return;
           }
@@ -154,8 +162,15 @@ static void
 _pepper_efl_object_cb_buffer_destroy(pepper_event_listener_t *listener EINA_UNUSED, pepper_object_t *object EINA_UNUSED, uint32_t id EINA_UNUSED, void *info EINA_UNUSED, void *data)
 {
    pepper_efl_object_t *po = data;
+   void *shm_data;
 
    pepper_efl_object_buffer_release(po->smart_obj);
+
+   shm_data = wl_shm_buffer_get_data(po->shm_buffer);
+   evas_object_image_data_copy_set(po->img, shm_data);
+   evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
+
+   po->buffer_destroyed = EINA_TRUE;
 }
 
 Evas_Object *
@@ -198,12 +213,17 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, pepper_buffer_t *buffer, int *
    if (!shm_buffer)
      return EINA_FALSE;
 
+   po->shm_buffer = shm_buffer;
+
    bw = wl_shm_buffer_get_width(shm_buffer);
    bh = wl_shm_buffer_get_height(shm_buffer);
 
-   po->shm_buffer = shm_buffer;
-   po->w = bw;
-   po->h = bh;
+   if ((po->w != bw) || (po->h != bh))
+     {
+        po->w = bw;
+        po->h = bh;
+        evas_object_resize(obj, bw, bh);
+     }
 
    if (po->buffer)
      {
@@ -225,8 +245,9 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, pepper_buffer_t *buffer, int *
         po->img = evas_object_image_filled_add(po->evas);
         evas_object_image_colorspace_set(po->img, EVAS_COLORSPACE_ARGB8888);
         evas_object_image_alpha_set(po->img, EINA_TRUE);
+        evas_object_image_size_set(po->img, po->w, po->h);
+
         evas_object_smart_member_add(po->img, obj);
-        evas_object_resize(obj, bw, bh);
         evas_object_smart_callback_call(po->win, PEPPER_EFL_OBJ_ADD, (void *)obj);
      }
 
@@ -243,7 +264,9 @@ pepper_efl_object_render(Evas_Object *obj)
 
    DBG("[OBJECT] Render: obj %p", obj);
 
+   if (po->buffer_destroyed)
+     return;
+
    evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
-   evas_object_image_size_set(po->img, po->w, po->h);
    evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
 }

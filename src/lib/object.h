@@ -10,14 +10,14 @@ struct pepper_efl_object
    Evas_Object *smart_obj;
    Evas_Object *img;
 
-   struct wl_shm_buffer *shm_buffer;
-
    pepper_efl_surface_t *es;
-
    pepper_buffer_t *buffer;
    pepper_event_listener_t *buffer_destroy_listener;
 
+   struct wl_shm_buffer *shm_buffer;
    int x, y, w, h;
+
+   Eina_Bool buffer_destroyed;
 };
 
 Evas_Object *pepper_efl_object_add(pepper_efl_surface_t *es);
