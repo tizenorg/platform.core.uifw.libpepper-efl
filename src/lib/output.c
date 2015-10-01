@@ -121,7 +121,6 @@ _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, in
 {
    pepper_efl_output_t *output = o;
    pepper_efl_surface_t *es;
-   pepper_buffer_t *buffer;
    int rw = 0, rh = 0;
 
    es = pepper_efl_surface_get(output, surface);
@@ -131,18 +130,8 @@ _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, in
         goto end;
      }
 
-   buffer = pepper_surface_get_buffer(surface);
-   if (!buffer)
-     {
-        ERR("failed to get pepper_buffer_t");
-        goto end;
-     }
-
-   if (!pepper_efl_object_buffer_attach(es->obj, buffer, &rw, &rh))
-     {
-        ERR("failed to attach shm to pepper_efl_object_t");
-        goto end;
-     }
+   if (!pepper_efl_surface_update(es, &rw, &rh))
+     goto end;
 
    output->update_list = eina_list_append(output->update_list, es);
 
