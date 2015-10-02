@@ -235,6 +235,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    Evas_Object *tb;
    Evas_Object *bx, *upper_bx, *mid_bx, *bt, *bt2, *bt3;
    Evas_Object *mid_bx_bg;
+   char *comp_name;
    int i, j;
 
    int ret = EXIT_FAILURE;
@@ -320,7 +321,8 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 
 
 
-   if (!pepper_efl_compositor_create(win, NULL))
+   comp_name = pepper_efl_compositor_create(win, NULL);
+   if (!comp_name)
      return ret;
 
    evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, _add_object_cb, d);
@@ -329,7 +331,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 
    elm_run();
 
-   pepper_efl_compositor_destroy(NULL);
+   pepper_efl_compositor_destroy(comp_name);
 
    return ret;
 }
