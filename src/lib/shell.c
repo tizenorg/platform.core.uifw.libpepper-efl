@@ -31,6 +31,9 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
    if (shsurf->resource)
      wl_resource_destroy(shsurf->resource);
 
+   if (shsurf->title)
+     eina_stringshare_del(shsurf->title);
+
    pepper_object_set_user_data(surface, pepper_surface_get_role(surface), NULL, NULL);
 
    free(shsurf);
@@ -100,7 +103,12 @@ xdg_surface_set_parent(struct wl_client *client, struct wl_resource *resource, s
 static void
 xdg_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title)
 {
+   pepper_efl_shell_surface_t *shsurf = wl_resource_get_user_data(resource);
    DBG("client %p", client);
+
+   if (shsurf->title)
+     eina_stringshare_del(shsurf->title);
+   shsurf->title = eina_stringshare_add(title);
 }
 
 static void

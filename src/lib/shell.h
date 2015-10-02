@@ -40,6 +40,8 @@ struct pepper_efl_shell_surface
 
    Eina_Bool mapped;
    Eina_Bool ack_configure;
+
+   const char *title;
 };
 
 Eina_Bool   pepper_efl_shell_init(pepper_efl_comp_t *comp);

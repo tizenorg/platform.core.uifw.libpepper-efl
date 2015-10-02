@@ -387,3 +387,49 @@ pepper_efl_object_render(Evas_Object *obj)
    evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
    evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
 }
+
+pid_t
+pepper_efl_object_pid_get(Evas_Object *obj)
+{
+   OBJ_DATA_GET 0;
+
+   pid_t pid = 0;
+   struct wl_client *client;
+
+   if (po->surface)
+     {
+        client = wl_resource_get_client(pepper_surface_get_resource(po->surface));
+        if (client)
+          wl_client_get_credentials(client, &pid, NULL, NULL);
+     }
+   DBG("[OBJECT] Pid Get : %d", pid);
+
+   return pid;
+}
+
+const char *
+pepper_efl_object_title_get(Evas_Object *obj)
+{
+   OBJ_DATA_GET NULL;
+
+   pepper_efl_shell_surface_t *shsurf = NULL;
+   pepper_surface_t *surface = NULL;
+   const char *title = NULL;
+
+   surface = po->surface;
+
+   if (surface)
+     {
+        shsurf = pepper_object_get_user_data((pepper_object_t *)surface,
+                                             pepper_surface_get_role(surface));
+
+        if (shsurf)
+          title = shsurf->title;
+     }
+
+   if (title)
+     DBG("[OBJECT] Title Get : %s", title);
+
+   return title;
+}
+
