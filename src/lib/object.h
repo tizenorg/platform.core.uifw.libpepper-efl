@@ -21,6 +21,11 @@ struct pepper_efl_object
    int x, y, w, h;
 
    Eina_Bool buffer_destroyed;
+
+   struct
+   {
+      pepper_pointer_t *ptr;
+   } input;
 };
 
 Evas_Object *pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surface_t *surface);

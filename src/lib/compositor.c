@@ -58,6 +58,7 @@ pepper_efl_compositor_destroy(const char *name)
 
    pepper_efl_shell_shutdown();
 
+   PE_FREE_FUNC(comp->seat, pepper_efl_input_destroy);
    PE_FREE_FUNC(comp->name, eina_stringshare_del);
    PE_FREE_FUNC(comp->pepper.comp, pepper_compositor_destroy);
    PE_FREE_FUNC(comp->fd_hdlr, ecore_main_fd_handler_del);
@@ -111,7 +112,8 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         return NULL;
      }
 
-   if (!pepper_efl_input_init(comp))
+   comp->seat = pepper_efl_input_create(comp);
+   if (!comp->seat)
      {
         ERR("failed to init input");
         pepper_compositor_destroy(comp->pepper.comp);
