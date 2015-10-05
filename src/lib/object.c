@@ -114,8 +114,6 @@ _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
                                    _pepper_efl_object_cb_shell_configure_done,
                                    po->img);
      }
-   else
-     pepper_efl_shell_configure(shsurf, w, h, _cb_configure_done, po->img);
 }
 
 static void
