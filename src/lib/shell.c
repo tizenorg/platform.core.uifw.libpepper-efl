@@ -34,7 +34,9 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
    if (shsurf->title)
      eina_stringshare_del(shsurf->title);
 
-   pepper_object_set_user_data(surface, pepper_surface_get_role(surface), NULL, NULL);
+   pepper_object_set_user_data(surface,
+                               pepper_surface_get_role((pepper_surface_t *)surface),
+                               NULL, NULL);
 
    free(shsurf);
 }

@@ -318,14 +318,14 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
    if (!po)
      return EINA_FALSE;
 
-   DBG("[OBJECT] Attach buffer: obj %p, buffer %p", obj, buffer);
-
    buffer = pepper_surface_get_buffer(po->surface);
    if (!buffer)
      {
         ERR("[OBJECT] Failed to get pepper_buffer_t");
         return EINA_FALSE;
      }
+
+   DBG("[OBJECT] Attach buffer: obj %p, buffer %p", obj, buffer);
 
    if (po->buffer)
      {

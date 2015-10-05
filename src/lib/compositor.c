@@ -71,9 +71,9 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
 {
    pepper_efl_comp_t *comp;
    pepper_efl_output_t *output;
-   int loop_fd;
-   char *sock_name;
    Eina_Bool first_init = EINA_FALSE;
+   int loop_fd;
+   const char *sock_name;
 
    if (comp_hash)
      {
