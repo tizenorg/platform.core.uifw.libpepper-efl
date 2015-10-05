@@ -21,7 +21,7 @@ Pepper is a lightweight and flexible library for developing various types of way
 %setup -q
                       
 %build
-%autogen
+%autogen --enable-examples
 make %{?_smp_mflags}
 
 %install
@@ -34,4 +34,4 @@ make %{?_smp_mflags}
 %{_libdir}/libpepper-efl.so.*
 %{_libdir}/libpepper-efl.so
 %{_libdir}/pkgconfig/libpepper-efl.pc
-
+%{_bindir}/pepper_efl_example
