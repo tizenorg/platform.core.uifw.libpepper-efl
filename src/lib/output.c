@@ -11,6 +11,7 @@ _pepper_efl_output_destroy(void *o)
 
    DBG("callback output");
 
+   PE_FREE_FUNC(output->primary_plane, pepper_plane_destroy);
    comp->output_list = eina_list_remove(comp->output_list, output);
    free(output);
 }
@@ -193,7 +194,7 @@ pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
    if (!output)
      {
         ERR("oom, alloc output");
-        return EINA_FALSE;
+        goto err;
      }
 
    evas_object_geometry_get(win, NULL, NULL, &w, &h);
@@ -211,11 +212,15 @@ pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
    if (!output->base)
      {
         ERR("failed add output to compositor");
-        free(output);
-        return EINA_FALSE;
+        goto err_output;
      }
 
    output->primary_plane = pepper_output_add_plane(output->base, NULL);
+   if (!output->primary_plane)
+     {
+        ERR("failed to add primary_plane");
+        goto err_plane;
+     }
 
    evas_object_event_callback_add(win, EVAS_CALLBACK_RESIZE, _pepper_efl_output_cb_window_resize, output);
    evas_event_callback_add(evas_object_evas_get(output->win),
@@ -225,4 +230,13 @@ pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
    comp->output_list = eina_list_append(comp->output_list, output);
 
    return output;
+
+err_plane:
+   pepper_output_destroy(output->base);
+
+err_output:
+   free(output);
+
+err:
+   return NULL;
 }
