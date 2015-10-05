@@ -25,6 +25,7 @@ struct pepper_efl_comp
    Ecore_Fd_Handler *fd_hdlr;
    Eina_List *output_list;
 
+   pepper_efl_seat_t *seat;
    pepper_efl_shell_t *shell;
 
    struct

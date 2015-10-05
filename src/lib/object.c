@@ -185,35 +185,39 @@ _pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
 
    DBG("[SURFACE] Mouse In: shsurf %p", shsurf);
 
-   pepper_pointer_set_focus(ptr, shsurf->view);
+   pepper_pointer_set_focus(po->input.ptr, shsurf->view);
 }
 
 static void
 _pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
+   pepper_efl_object_t *po = data;
+
    DBG("[SURFACE] Mouse Out");
 
-   pepper_pointer_set_focus(ptr, NULL);
+   pepper_pointer_set_focus(po->input.ptr, NULL);
 }
 
 static void
 _pepper_efl_object_evas_cb_mouse_move(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
+   pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Move *ev = event;
 
    DBG("[SURFACE] Mouse Move: x %d y %d", ev->cur.canvas.x, ev->cur.canvas.y);
 
-   pepper_pointer_send_motion(ptr, ev->timestamp, ev->cur.canvas.x, ev->cur.canvas.y);
+   pepper_pointer_send_motion(po->input.ptr, ev->timestamp, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
 static void
 _pepper_efl_object_evas_cb_mouse_down(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
+   pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Down *ev = event;
 
    DBG("[SURFACE] Mouse Down");
 
-   pepper_pointer_send_button(ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_PRESSED);
+   pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_PRESSED);
 }
 
 static void
@@ -224,7 +228,7 @@ _pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Obj
 
    DBG("[SURFACE] Mouse Up");
 
-   pepper_pointer_send_button(ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_RELEASED);
+   pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_RELEASED);
 
    evas_object_raise(po->smart_obj);
 }
@@ -276,6 +280,7 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
      return NULL;
 
    po->es = es;
+   po->input.ptr = es->output->comp->seat->ptr.resource;
    po->evas = evas;
    po->parent = parent;
    po->surface = surface;
@@ -288,7 +293,7 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
    evas_object_event_callback_priority_add(o,                                    \
                                            EVAS_CALLBACK_##type,                 \
                                            EVAS_CALLBACK_PRIORITY_AFTER,         \
-                                           _pepper_efl_object_evas_cb_##func,   \
+                                           _pepper_efl_object_evas_cb_##func,    \
                                            po);
         EVENT_ADD(MOUSE_IN, mouse_in);
         EVENT_ADD(MOUSE_OUT, mouse_out);
@@ -383,6 +388,7 @@ pepper_efl_object_render(Evas_Object *obj)
    if (po->buffer_destroyed)
      return;
 
+   // FIXME: just mark dirty here, and set the data in pixels_get callback.
    evas_object_image_size_set(po->img, po->w, po->h);
    evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
    evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
