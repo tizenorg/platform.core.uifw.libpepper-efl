@@ -40,8 +40,8 @@ pepper_efl_surface_get(pepper_efl_output_t *output, pepper_surface_t *surface)
         if (!es)
           return NULL;
 
-        es->obj = pepper_efl_object_add(es, output->win, surface);
         es->output = output;
+        es->obj = pepper_efl_object_add(es, output->win, surface);
         es->surface = surface;
         es->surface_destroy_listener =
            pepper_object_add_event_listener((pepper_object_t *)surface,
