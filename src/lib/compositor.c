@@ -73,6 +73,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
    pepper_efl_output_t *output;
    int loop_fd;
    char *sock_name;
+   Eina_Bool first_init = EINA_FALSE;
 
    if (comp_hash)
      {
@@ -82,11 +83,12 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
      }
    else
      {
-        if (!pepper_efl_log_init("pepper-efl"))
-          return NULL;
-
         comp_hash = eina_hash_string_superfast_new(NULL);
+        first_init = EINA_TRUE;
      }
+
+   if (!pepper_efl_log_init("pepper-efl"))
+     goto err;
 
    DBG("create compositor");
 
@@ -94,30 +96,27 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
    if (!comp)
      {
         ERR("oom, alloc comp");
-        return NULL;
+        goto err_alloc;
      }
 
    comp->pepper.comp = pepper_compositor_create(name);
    if (!comp->pepper.comp)
      {
         ERR("failed to create pepper compositor");
-        return NULL;
+        goto err_comp;
      }
 
    if (!pepper_efl_shell_init(comp))
      {
         ERR("failed to init shell");
-        pepper_compositor_destroy(comp->pepper.comp);
-        free(comp);
-        return NULL;
+        goto err_shell;
      }
 
    comp->seat = pepper_efl_input_create(comp);
    if (!comp->seat)
      {
         ERR("failed to init input");
-        pepper_compositor_destroy(comp->pepper.comp);
-        pepper_efl_shell_shutdown();
+        goto err_seat;
      }
 
    sock_name = pepper_compositor_get_socket_name(comp->pepper.comp);
@@ -134,15 +133,38 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
                                               _pepper_efl_compositor_cb_fd_prepare,
                                               comp);
 
-   eina_hash_add(comp_hash, comp->name, comp);
-
 create_output:
    output = pepper_efl_output_create(comp, win);
    if (!output)
      {
         ERR("failed to create output");
+
+        if (first_init)
+          goto err_output;
+
         return NULL;
      }
 
+   eina_hash_add(comp_hash, comp->name, comp);
+
    return comp->name;
+
+err_output:
+   eina_stringshare_del(comp->name);
+   ecore_main_fd_handler_del(comp->fd_hdlr);
+
+err_seat:
+   pepper_efl_shell_shutdown();
+
+err_shell:
+   pepper_compositor_destroy(comp->pepper.comp);
+
+err_comp:
+   free(comp);
+
+err_alloc:
+   pepper_efl_log_shutdown();
+
+err:
+   return NULL;
 }
