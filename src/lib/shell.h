@@ -5,13 +5,8 @@ typedef struct pepper_efl_shell pepper_efl_shell_t;
 typedef struct pepper_efl_shell_client pepper_efl_shell_client_t;
 typedef struct pepper_efl_shell_surface pepper_efl_shell_surface_t;
 
-struct pepper_efl_shell
-{
-   pepper_efl_comp_t *comp;
-};
-
 struct pepper_efl_shell_client {
-   pepper_efl_shell_t *shell;
+   pepper_efl_comp_t *comp;
 
    struct wl_resource *resource;
    struct wl_listener destroy_listener;
@@ -19,7 +14,7 @@ struct pepper_efl_shell_client {
 
 struct pepper_efl_shell_surface
 {
-   pepper_efl_shell_t *shell;
+   pepper_efl_comp_t *comp;
 
    pepper_view_t *view;
    /* Listeners */

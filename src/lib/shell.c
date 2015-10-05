@@ -2,9 +2,6 @@
 
 #include <xdg-shell-server-protocol.h>
 
-// global shell object.
-static pepper_efl_shell_t *_shell = NULL;
-
 static void
 handle_resource_destroy(struct wl_resource *resource)
 {
@@ -78,7 +75,7 @@ shsurf_xdg_surface_send_configure(pepper_efl_shell_surface_t *shsurf, int32_t wi
    state = wl_array_add(&states, sizeof(uint32_t));
    *state = XDG_SURFACE_STATE_ACTIVATED; // this is arbitary.
 
-   display = pepper_compositor_get_display(shsurf->shell->comp->pepper.comp);
+   display = pepper_compositor_get_display(shsurf->comp->pepper.comp);
    serial = wl_display_next_serial(display);
 
    xdg_surface_send_configure(shsurf->resource, width, height, &states, serial);
@@ -238,8 +235,8 @@ xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource,
         goto err;
      }
 
-   shsurf->shell = shell_client->shell;
-   shsurf->view = pepper_compositor_add_view(shell_client->shell->comp->pepper.comp);
+   shsurf->comp = shell_client->comp;
+   shsurf->view = pepper_compositor_add_view(shell_client->comp->pepper.comp);
    if (!shsurf->view)
      {
         ERR("failed to add pepper_view");
@@ -313,7 +310,7 @@ shell_client_destroy_handle(struct wl_listener *listener, void *data)
 static void
 xdg_shell_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id)
 {
-   pepper_efl_shell_t *shell = data;
+   pepper_efl_comp_t *comp = data;
    pepper_efl_shell_client_t *shell_client;
 
    DBG("Bind Shell - client %p version %d", client, version);
@@ -335,7 +332,7 @@ xdg_shell_bind(struct wl_client *client, void *data, uint32_t version, uint32_t 
 
    wl_resource_set_implementation(shell_client->resource, &xdg_implementation, shell_client, NULL);
 
-   shell_client->shell  = shell;
+   shell_client->comp  = comp;
    shell_client->destroy_listener.notify = shell_client_destroy_handle;
    wl_client_add_destroy_listener(client, &shell_client->destroy_listener);
 }
@@ -347,26 +344,12 @@ pepper_efl_shell_init(pepper_efl_comp_t *comp)
 
    DBG("Init Shell");
 
-   if (_shell)
-     return EINA_TRUE;
-
-   _shell = calloc(1, sizeof(pepper_efl_shell_t));
-   if (!_shell)
-     {
-        ERR("out of memory");
-        return EINA_FALSE;
-     }
-
    wl_disp = pepper_compositor_get_display(comp->pepper.comp);
-   if (!wl_global_create(wl_disp, &xdg_shell_interface, 1, _shell, xdg_shell_bind))
+   if (!wl_global_create(wl_disp, &xdg_shell_interface, 1, comp, xdg_shell_bind))
      {
         ERR("failed to create global for xdg_shell");
-        free(_shell);
-        _shell = NULL;
         return EINA_FALSE;
      }
-
-   _shell->comp = comp;
 
    return EINA_TRUE;
 }
@@ -375,8 +358,6 @@ void
 pepper_efl_shell_shutdown(void)
 {
    DBG("Shutdown Shell");
-
-   PE_FREE_FUNC(_shell, free);
 }
 
 void
