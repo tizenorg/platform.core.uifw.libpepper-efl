@@ -13,9 +13,9 @@ AC_PROG_CC
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
-PKG_CHECK_MODULES([PEPPER], [pepper])
+PKG_CHECK_MODULES([PEPPER], [pepper xkbcommon])
 PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server])
-PKG_CHECK_MODULES([EFL], [eina ecore evas])
+PKG_CHECK_MODULES([EFL], [eina ecore ecore-input evas])
 
 
 AC_ARG_ENABLE([examples],

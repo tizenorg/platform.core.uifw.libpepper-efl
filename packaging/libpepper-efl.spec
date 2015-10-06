@@ -11,6 +11,7 @@ BuildRequires: pkgconfig(wayland-server)
 BuildRequires: pkgconfig(pepper)
 BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(xdg-shell-server)
+BuildRequires: pkgconfig(xkbcommon)
 Requires: libwayland-extension-server
 
 %description

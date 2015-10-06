@@ -25,7 +25,7 @@ struct pepper_efl_comp
    Ecore_Fd_Handler *fd_hdlr;
    Eina_List *output_list;
 
-   pepper_efl_seat_t *seat;
+   pepper_efl_input_t *input;
    pepper_efl_shell_t *shell;
 
    struct
@@ -45,6 +45,23 @@ struct pepper_efl_comp
 #define PEPPER_EFL_SURFACE_KEY         "pepper_efl_surface"
 
 #define PE_FREE_FUNC(_h, _fn) do { if (_h) { _fn((void*)_h); _h = NULL; } } while (0)
+#define PE_LIST_HANDLER_APPEND(list, type, callback, data) \
+   do \
+   { \
+      Ecore_Event_Handler *_eh; \
+      _eh = ecore_event_handler_add(type, (Ecore_Event_Handler_Cb)callback, data); \
+      list = eina_list_append(list, _eh); \
+   } while (0)
+#define PE_FREE_LIST(list, free) \
+   do \
+   { \
+      void *_tmp_; \
+      EINA_LIST_FREE(list, _tmp_) \
+        { \
+           free(_tmp_); \
+        } \
+   } while (0)
+
 #define container_of(ptr, sample, member)                                     \
    (__typeof__(sample))((char *)(ptr) - offsetof(__typeof__(*sample), member))
 

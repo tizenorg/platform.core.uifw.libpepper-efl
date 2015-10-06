@@ -208,10 +208,10 @@ _pepper_efl_object_evas_cb_mouse_move(void *data EINA_UNUSED, Evas *evas EINA_UN
    Evas_Event_Mouse_Move *ev = event;
    int x, y;
 
-   DBG("[SURFACE] Mouse Move: x %d y %d", ev->cur.canvas.x, ev->cur.canvas.y);
-
    x = ev->cur.canvas.x - po->x;
    y = ev->cur.canvas.y - po->y;
+
+   DBG("[SURFACE] Mouse Move: x %d y %d", x, y);
 
    pepper_pointer_send_motion(po->input.ptr, ev->timestamp, x, y);
 }
@@ -225,6 +225,7 @@ _pepper_efl_object_evas_cb_mouse_down(void *data EINA_UNUSED, Evas *evas EINA_UN
    DBG("[SURFACE] Mouse Down");
 
    pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_PRESSED);
+   evas_object_focus_set(po->smart_obj, EINA_TRUE);
 }
 
 static void
@@ -236,8 +237,48 @@ _pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    DBG("[SURFACE] Mouse Up");
 
    pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_RELEASED);
+}
 
-   evas_object_raise(po->smart_obj);
+static void
+_pepper_efl_object_evas_cb_focus_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   pepper_efl_object_t *po = data;
+   pepper_efl_shell_surface_t *shsurf;
+
+   if (!po->surface)
+     return;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   DBG("[OBJECT] Focus In: obj %p, shsurf %p", obj, shsurf);
+
+   pepper_keyboard_set_focus(po->input.kbd, shsurf->view);
+}
+
+static void
+_pepper_efl_object_evas_cb_focus_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   pepper_efl_object_t *po = data;
+   pepper_efl_shell_surface_t *shsurf;
+   pepper_view_t *view;
+
+   if (!po->surface)
+     return;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   DBG("[OBJECT] Focus Out: obj %p, shsurf %p", obj, shsurf);
+
+   view = pepper_keyboard_get_focus(po->input.kbd);
+
+   if (shsurf->view == view)
+     pepper_keyboard_set_focus(po->input.kbd, NULL);
 }
 
 static void
@@ -287,7 +328,9 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
      return NULL;
 
    po->es = es;
-   po->input.ptr = es->output->comp->seat->ptr.resource;
+   po->input.ptr = es->output->comp->input->pointer;
+   po->input.kbd = es->output->comp->input->keyboard;
+   po->input.touch = es->output->comp->input->touch;
    po->evas = evas;
    po->parent = parent;
    po->surface = surface;
@@ -307,6 +350,9 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
    EVENT_ADD(MOUSE_MOVE, mouse_move);
    EVENT_ADD(MOUSE_DOWN, mouse_down);
    EVENT_ADD(MOUSE_UP, mouse_up);
+
+   EVENT_ADD(FOCUS_IN, focus_in);
+   EVENT_ADD(FOCUS_OUT, focus_out);
 #undef EVENT_ADD
 
    return o;

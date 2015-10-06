@@ -25,6 +25,8 @@ struct pepper_efl_object
    struct
    {
       pepper_pointer_t *ptr;
+      pepper_keyboard_t *kbd;
+      pepper_touch_t *touch;
    } input;
 };
 

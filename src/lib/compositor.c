@@ -58,7 +58,7 @@ pepper_efl_compositor_destroy(const char *name)
 
    pepper_efl_shell_shutdown();
 
-   PE_FREE_FUNC(comp->seat, pepper_efl_input_destroy);
+   PE_FREE_FUNC(comp->input, pepper_efl_input_destroy);
    PE_FREE_FUNC(comp->name, eina_stringshare_del);
    PE_FREE_FUNC(comp->pepper.comp, pepper_compositor_destroy);
    PE_FREE_FUNC(comp->fd_hdlr, ecore_main_fd_handler_del);
@@ -112,11 +112,11 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_shell;
      }
 
-   comp->seat = pepper_efl_input_create(comp);
-   if (!comp->seat)
+   comp->input = pepper_efl_input_create(comp);
+   if (!comp->input)
      {
         ERR("failed to init input");
-        goto err_seat;
+        goto err_input;
      }
 
    sock_name = pepper_compositor_get_socket_name(comp->pepper.comp);
@@ -153,7 +153,7 @@ err_output:
    eina_stringshare_del(comp->name);
    ecore_main_fd_handler_del(comp->fd_hdlr);
 
-err_seat:
+err_input:
    pepper_efl_shell_shutdown();
 
 err_shell:
