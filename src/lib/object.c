@@ -367,6 +367,7 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
         po->img = evas_object_image_filled_add(po->evas);
         evas_object_image_colorspace_set(po->img, EVAS_COLORSPACE_ARGB8888);
         evas_object_image_alpha_set(po->img, EINA_TRUE);
+        evas_object_resize(po->img, po->w, po->h);
 
         evas_object_smart_member_add(po->img, obj);
         evas_object_smart_callback_call(po->parent, PEPPER_EFL_OBJ_ADD, (void *)obj);
