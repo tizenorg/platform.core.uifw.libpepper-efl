@@ -302,11 +302,11 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
                                            EVAS_CALLBACK_PRIORITY_AFTER,         \
                                            _pepper_efl_object_evas_cb_##func,    \
                                            po);
-        EVENT_ADD(MOUSE_IN, mouse_in);
-        EVENT_ADD(MOUSE_OUT, mouse_out);
-        EVENT_ADD(MOUSE_MOVE, mouse_move);
-        EVENT_ADD(MOUSE_DOWN, mouse_down);
-        EVENT_ADD(MOUSE_UP, mouse_up);
+   EVENT_ADD(MOUSE_IN, mouse_in);
+   EVENT_ADD(MOUSE_OUT, mouse_out);
+   EVENT_ADD(MOUSE_MOVE, mouse_move);
+   EVENT_ADD(MOUSE_DOWN, mouse_down);
+   EVENT_ADD(MOUSE_UP, mouse_up);
 #undef EVENT_ADD
 
    return o;
