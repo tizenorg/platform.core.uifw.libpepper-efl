@@ -70,6 +70,9 @@ _pepper_efl_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 
    DBG("[OBJECT] Move: obj %p, x %d, y %d", obj, x, y);
 
+   po->x = x;
+   po->y = y;
+
    evas_object_move(po->img, x, y);
 }
 
@@ -203,10 +206,14 @@ _pepper_efl_object_evas_cb_mouse_move(void *data EINA_UNUSED, Evas *evas EINA_UN
 {
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Move *ev = event;
+   int x, y;
 
    DBG("[SURFACE] Mouse Move: x %d y %d", ev->cur.canvas.x, ev->cur.canvas.y);
 
-   pepper_pointer_send_motion(po->input.ptr, ev->timestamp, ev->cur.canvas.x, ev->cur.canvas.y);
+   x = ev->cur.canvas.x - po->x;
+   y = ev->cur.canvas.y - po->y;
+
+   pepper_pointer_send_motion(po->input.ptr, ev->timestamp, x, y);
 }
 
 static void
