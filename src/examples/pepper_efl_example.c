@@ -116,14 +116,12 @@ static void client_launch()
 
    pid_t pid;
    char path[64];
-  
+
    pid = fork();
 
 
    if (pid == 0)
      {
-        setenv("XDG_RUNTIME_DIR", "/tmp", 1);
-
         if (!app_num)
           {
              sprintf(path, "%s/touch_sample", SAMPLE_PATH);
@@ -357,6 +355,8 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    comp_name = pepper_efl_compositor_create(win, NULL);
    if (!comp_name)
      return ret;
+
+   setenv("WAYLAND_DISPLAY", comp_name, 1);
 
    evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, _add_object_cb, d);
    evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_DEL, _del_object_cb, NULL);
