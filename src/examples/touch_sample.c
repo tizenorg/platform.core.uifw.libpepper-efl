@@ -12,7 +12,6 @@ win_add(int w, int h)
 {
    Evas_Object *win, *bg;
 
-
    win = elm_win_add(NULL, "widget", ELM_WIN_BASIC);
    elm_win_autodel_set(win, EINA_TRUE);
 
@@ -50,12 +49,13 @@ bt_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
    now++;
 }
 
-int main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
+int
+main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 {
    Evas_Object *win;
    Evas_Object *button, *rect;
    Evas_Object *bx;
- 
+
    elm_init(argc, argv);
 
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
@@ -65,25 +65,21 @@ int main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    evas_object_size_hint_weight_set(bx, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, bx);
    evas_object_show(bx);
-   
 
    button = elm_button_add(win);
    evas_object_size_hint_weight_set(button, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(button, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_object_text_set(button, "CHANGE");
    elm_box_pack_end(bx, button);
+   evas_object_event_callback_add(button, EVAS_CALLBACK_MOUSE_UP, bt_cb, rect);
    evas_object_show(button);
 
-   
    rect = evas_object_rectangle_add(win);
    evas_object_color_set(rect, 125, 0, 0, 255);
    evas_object_size_hint_weight_set(rect, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(rect, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(bx, rect);
    evas_object_show(rect);
-
-
-   evas_object_event_callback_add(button, EVAS_CALLBACK_MOUSE_DOWN, bt_cb, rect);
 
    elm_run();
    elm_shutdown();
