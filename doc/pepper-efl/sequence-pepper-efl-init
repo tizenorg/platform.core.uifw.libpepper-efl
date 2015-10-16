@@ -1,0 +1,54 @@
+@startuml
+actor user
+
+participant pepper_efl 
+participant xdg_shell
+participant pepper
+
+
+user->pepper_efl : 1 : pepper_efl_compositor_create(win, name)
+activate pepper_efl
+
+alt compositor
+pepper_efl->pepper : 2 : pepper_compositor_create(name)
+pepper->pepper : 3 : wl_display_create()
+pepper->pepper : 4 : wl_display_add_socket()
+pepper->pepper : 5 : wl_global_create(&wl_compositor_interface)
+end alt
+
+alt shell
+pepper_efl->xdg_shell : 6 : pepper_efl_shell_init()
+xdg_shell->xdg_shell : 7 : wl_global_create(&xdg_shell_interface)
+end alt
+
+alt input
+pepper_efl->pepper_efl : 8 : pepper_efl_input_init()
+activate pepper_efl
+pepper_efl->pepper : 9 : pepper_compositor_add_seat()
+pepper->pepper : 10 : wl_global_create(&wl_seat_interface)
+pepper_efl->pepper : 11 : pepper_input_device_create()
+pepper_efl->pepper : 12 : pepper_seat_add_input_device()
+pepper->pepper : 13 : wl_seat_send_capabilities()
+pepper_efl->pepper : 14. pepper_keyboard_set_keymap()
+pepper->pepper : 15. wl_keyboard_send_keymap()
+deactivate pepper_efl
+end alt
+
+alt output
+pepper_efl->pepper_efl : 16 : pepper_efl_output_create()
+activate pepper_efl
+pepper_efl->pepper : 17 : pepper_compositor_add_output()
+pepper->pepper : 18 : wl_global_create(&wl_output_interface)
+pepper_efl->pepper : 19 : pepper_output_add_plane()
+pepper_efl->pepper_efl : 20 : add EVAS_CALLBACK_RENDER_POST
+deactivate pepper_efl
+end alt
+
+pepper_efl->pepper_efl : 21 : add fd_handler to ecore
+
+pepper_efl->user : 22 : socket name
+deactivate pepper_efl
+
+
+
+@enduml
