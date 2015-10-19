@@ -1,0 +1,60 @@
+@startuml
+actor user
+
+participant pepper_efl 
+participant xdg_shell
+participant pepper
+
+participant wayland_client
+
+wayland_client->wayland_client : 1 : elm_win_add
+
+alt shell
+wayland_client->xdg_shell : 2 : wl_registry_bind()
+xdg_shell->xdg_shell : 3 : create resource
+xdg_shell->pepper : 4 : pepper_compositor_add_view()
+xdg_shell->pepper : 5 : pepper_view_set_surface()
+wayland_client->pepper : 6 : wl_surface_attach()
+wayland_client->pepper : 7 : wl_surface_damage()
+wayland_client->pepper : 8 : wl_surface_commit()
+pepper->xdg_shell : 9 : PEPPER_EVENT_SURFACE_COMMIT
+xdg_shell->pepper :  10 : pepper_view_map()
+end alt
+
+
+pepper->pepper_efl : 11 : attach surface callback
+pepper_efl->pepper_efl : 12 : pepper_efl_surface_get()
+alt first attach
+pepper_efl->pepper_efl : 13 : pepper_efl_object_add()
+activate pepper_efl
+pepper_efl->pepper_efl : 14 : add input handlers for obj
+deactivate pepper_efl
+end alt
+pepper_efl->pepper_efl : 15 : pepper_efl_surface_update()
+activate pepper_efl
+pepper_efl->pepper_efl : 16 : pepper_efl_object_buffer_attach()
+pepper_efl->pepper_efl : 17 : wl_shm_buffer_get()
+alt first attach
+pepper_efl->pepper_efl : 18 : evas_object_image_add()
+pepper_efl->pepper_efl : 19 : evas_object_smart_member_add()
+pepper_efl->user : 20 : evas_object_smart_callback_call(PEPPER_EFL_OBJ_ADD, obj)
+end alt
+deactivate pepper_efl
+
+pepper->pepper_efl : 21 : assign planes callback
+activate pepper_efl  
+pepper_efl->pepper : 22 : pepper_view_assign_plane()
+deactivate pepper_efl  
+
+pepper->pepper_efl : 23 : repaint callback
+activate pepper_efl  
+pepper_efl->pepper_efl : 24 : pepper_efl_object_render()
+deactivate pepper_efl
+  
+pepper_efl <--] : 25 : render_post callback
+activate pepper_efl  
+pepper_efl->pepper_efl : 26 : pepper_efl_object_render()
+pepper_efl -> pepper : 27 : pepper_output_finish_frame()
+deactivate pepper_efl
+
+@enduml

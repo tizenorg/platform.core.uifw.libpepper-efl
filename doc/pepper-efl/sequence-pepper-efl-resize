@@ -1,0 +1,25 @@
+@startuml
+actor user
+
+participant pepper_efl 
+participant xdg_shell
+participant pepper
+participant wayland_client
+
+
+user->user : 1 : evas_object_resize(obj, w, h)
+user->pepper_efl : 2 : smart callback for resize\n_pepper_efl_smart_resize()
+
+activate pepper_efl
+
+alt configure
+pepper_efl->xdg_shell : 3 : pepper_efl_shell_configure()
+xdg_shell->wayland_client : 4 : xdg_surface_send_configure()
+wayland_client->wayland_client : 5 : update buffer
+wayland_client -> xdg_shell : 6 : xdg_surface_ack_configure()
+xdg_shell->pepper_efl : 7 : _pepper_efl_object_cb_shell_configure_done()
+pepper_efl->pepper_efl : 8 : evas_object_resize(img)
+deactivate pepper_efl
+end alt
+
+@enduml
