@@ -3,6 +3,7 @@
 #endif
 
 #include <stdlib.h>
+#include <pthread.h>
 
 // EFL header
 #include <Eina.h>
@@ -15,7 +16,8 @@
 // internal header
 #include "private.h"
 
-__thread Eina_Hash *comp_hash = NULL;
+static Eina_Hash *_comp_hash = NULL;
+static pthread_mutex_t _comp_hash_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static Eina_Bool
 _pepper_efl_compositor_cb_fd_read(void *data, Ecore_Fd_Handler *hdl EINA_UNUSED)
@@ -45,13 +47,14 @@ pepper_efl_compositor_destroy(const char *name)
    if (!name)
      return EINA_FALSE;
 
-   comp = eina_hash_find(comp_hash, name);
-   if (!comp)
-     return EINA_FALSE;
+   pthread_mutex_lock(&_comp_hash_lock);
 
-   eina_hash_del(comp_hash, name, NULL);
-   if (eina_hash_population(comp_hash) == 0)
-     PE_FREE_FUNC(comp_hash, eina_hash_free);
+   comp = eina_hash_find(_comp_hash, name);
+   if (!comp)
+     {
+        pthread_mutex_unlock(&_comp_hash_lock);
+        return EINA_FALSE;
+     }
 
    EINA_LIST_FOREACH(comp->output_list, l, output)
       pepper_output_destroy(output->base);
@@ -62,6 +65,16 @@ pepper_efl_compositor_destroy(const char *name)
    PE_FREE_FUNC(comp->name, eina_stringshare_del);
    PE_FREE_FUNC(comp->pepper.comp, pepper_compositor_destroy);
    PE_FREE_FUNC(comp->fd_hdlr, ecore_main_fd_handler_del);
+
+   eina_hash_del(_comp_hash, name, NULL);
+   if (eina_hash_population(_comp_hash) == 0)
+     {
+        PE_FREE_FUNC(_comp_hash, eina_hash_free);
+        ecore_shutdown();
+        pepper_efl_log_shutdown();
+     }
+
+   pthread_mutex_unlock(&_comp_hash_lock);
 
    return EINA_TRUE;
 }
@@ -75,20 +88,33 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
    int loop_fd;
    const char *sock_name;
 
-   if (comp_hash)
+   pthread_mutex_lock(&_comp_hash_lock);
+
+   if (_comp_hash)
      {
-        comp = eina_hash_find(comp_hash, name);
+        comp = eina_hash_find(_comp_hash, name);
+
         if (comp)
           goto create_output;
      }
    else
      {
-        comp_hash = eina_hash_string_superfast_new(NULL);
         first_init = EINA_TRUE;
-     }
 
-   if (!pepper_efl_log_init("pepper-efl"))
-     goto err;
+        _comp_hash = eina_hash_string_superfast_new(NULL);
+
+        if (!pepper_efl_log_init("pepper-efl"))
+          {
+             fprintf(stderr, "failed to init log system\n");
+             goto err_log_init;
+          }
+
+        if (!ecore_init())
+          {
+             ERR("failed to init ecore");
+             goto err_ecore_init;
+          }
+     }
 
    DBG("create compositor");
 
@@ -145,7 +171,9 @@ create_output:
         return NULL;
      }
 
-   eina_hash_add(comp_hash, comp->name, comp);
+   eina_hash_add(_comp_hash, comp->name, comp);
+
+   pthread_mutex_unlock(&_comp_hash_lock);
 
    return comp->name;
 
@@ -163,8 +191,15 @@ err_comp:
    free(comp);
 
 err_alloc:
+   ecore_shutdown();
+
+err_ecore_init:
    pepper_efl_log_shutdown();
 
-err:
+err_log_init:
+   PE_FREE_FUNC(_comp_hash, eina_hash_free);
+
+   pthread_mutex_unlock(&_comp_hash_lock);
+
    return NULL;
 }
