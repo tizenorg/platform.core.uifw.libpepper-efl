@@ -173,10 +173,12 @@ _pepper_efl_smart_init(void)
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj, void *event)
 {
+   Evas_Event_Mouse_In *ev = event;
    pepper_efl_object_t *po = data;
    pepper_efl_shell_surface_t *shsurf;
+   int x, y;
 
    if (!po->surface)
      return;
@@ -186,18 +188,24 @@ _pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    if (!shsurf)
      return;
 
-   DBG("[SURFACE] Mouse In: shsurf %p", shsurf);
+   x = ev->canvas.x - po->x;
+   y = ev->canvas.y - po->y;
+
+   DBG("[SURFACE] Mouse In: obj %p shsurf %p x %d y %d", obj, shsurf, x, y);
 
    pepper_pointer_set_focus(po->input.ptr, shsurf->view);
+   pepper_pointer_send_enter(po->input.ptr, x, y);
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED)
 {
    pepper_efl_object_t *po = data;
 
-   DBG("[SURFACE] Mouse Out");
+   DBG("[SURFACE] Mouse Out: obj %p", obj);
 
+   /* NOTE: send leave before unset focus */
+   pepper_pointer_send_leave(po->input.ptr);
    pepper_pointer_set_focus(po->input.ptr, NULL);
 }
 
@@ -244,18 +252,36 @@ _pepper_efl_object_evas_cb_focus_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
 {
    pepper_efl_object_t *po = data;
    pepper_efl_shell_surface_t *shsurf;
+   pepper_view_t *focused_view;
 
    if (!po->surface)
      return;
 
    shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
                                         pepper_surface_get_role(po->surface));
-   if (!shsurf)
+   if ((!shsurf) && (!shsurf->view))
      return;
 
    DBG("[OBJECT] Focus In: obj %p, shsurf %p", obj, shsurf);
 
+   focused_view = pepper_keyboard_get_focus(po->input.kbd);
+
+   if (shsurf->view == focused_view)
+     {
+        // already focused view.
+        return;
+     }
+
+   if (focused_view)
+     {
+        // send leave message for pre-focused view.
+        pepper_keyboard_send_leave(po->input.kbd);
+     }
+
+   // replace focused view.
    pepper_keyboard_set_focus(po->input.kbd, shsurf->view);
+   // send enter message for newly focused view.
+   pepper_keyboard_send_enter(po->input.kbd);
 }
 
 static void
@@ -276,9 +302,18 @@ _pepper_efl_object_evas_cb_focus_out(void *data EINA_UNUSED, Evas *evas EINA_UNU
    DBG("[OBJECT] Focus Out: obj %p, shsurf %p", obj, shsurf);
 
    view = pepper_keyboard_get_focus(po->input.kbd);
+   if ((!view) || (shsurf->view != view))
+     {
+        // I expect that already sends 'leave' message to this view,
+        // when focus view is changed in _cb_focus_in().
+        // so, nothing to do here.
+        return;
+     }
 
-   if (shsurf->view == view)
-     pepper_keyboard_set_focus(po->input.kbd, NULL);
+   // send leave message for pre-focused view.
+   pepper_keyboard_send_leave(po->input.kbd);
+   // unset focus view.
+   pepper_keyboard_set_focus(po->input.kbd, NULL);
 }
 
 static void
