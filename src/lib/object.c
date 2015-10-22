@@ -173,12 +173,15 @@ _pepper_efl_smart_init(void)
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj, void *event)
+_touch_down(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, int y)
 {
-   Evas_Event_Mouse_In *ev = event;
-   pepper_efl_object_t *po = data;
    pepper_efl_shell_surface_t *shsurf;
-   int x, y;
+   int rel_x, rel_y;
+
+   rel_x = x - po->x;
+   rel_y = y - po->y;
+
+   DBG("Touch (%d) Down: obj %p x %d y %d", device, po->smart_obj, rel_x, rel_y);
 
    if (!po->surface)
      return;
@@ -188,63 +191,110 @@ _pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    if (!shsurf)
      return;
 
-   x = ev->canvas.x - po->x;
-   y = ev->canvas.y - po->y;
-
-   DBG("[SURFACE] Mouse In: obj %p shsurf %p x %d y %d", obj, shsurf, x, y);
-
-   pepper_pointer_set_focus(po->input.ptr, shsurf->view);
-   pepper_pointer_send_enter(po->input.ptr, x, y);
+   pepper_touch_add_point(po->input.touch, device, rel_x, rel_y);
+   pepper_touch_point_set_focus(po->input.touch, device, shsurf->view);
+   pepper_touch_send_down(po->input.touch, timestamp, device, rel_x, rel_y);
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED)
+_touch_up(pepper_efl_object_t *po, unsigned int timestamp, int device)
 {
-   pepper_efl_object_t *po = data;
+   pepper_efl_shell_surface_t *shsurf;
 
-   DBG("[SURFACE] Mouse Out: obj %p", obj);
+   DBG("Touch (%d) Up: obj %p", device, po->smart_obj);
 
-   /* NOTE: send leave before unset focus */
-   pepper_pointer_send_leave(po->input.ptr);
-   pepper_pointer_set_focus(po->input.ptr, NULL);
+   if (!po->surface)
+     return;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   pepper_touch_send_up(po->input.touch, timestamp, device);
+   pepper_touch_point_set_focus(po->input.touch, device, NULL);
+   pepper_touch_remove_point(po->input.touch, device);
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_move(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_touch_move(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, int y)
+{
+   int rel_x, rel_y;
+
+   rel_x = x - po->x;
+   rel_y = y - po->y;
+
+   DBG("Touch (%d) Move: obj %p x %d y %d", device, po->smart_obj, rel_x, rel_y);
+
+   pepper_touch_send_motion(po->input.touch, timestamp, device, rel_x, rel_y);
+}
+
+static void
+_pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   DBG("Mouse In");
+   // Nothing to do for now.
+}
+
+static void
+_pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   DBG("Mouse Out");
+   // Nothing to do for now.
+}
+
+static void
+_pepper_efl_object_evas_cb_mouse_move(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
 {
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Move *ev = event;
-   int x, y;
 
-   x = ev->cur.canvas.x - po->x;
-   y = ev->cur.canvas.y - po->y;
-
-   DBG("[SURFACE] Mouse Move: x %d y %d", x, y);
-
-   pepper_pointer_send_motion(po->input.ptr, ev->timestamp, x, y);
+   _touch_move(po, ev->timestamp, 0, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_down(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_pepper_efl_object_evas_cb_mouse_down(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
 {
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Down *ev = event;
 
-   DBG("[SURFACE] Mouse Down");
-
-   pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_PRESSED);
-   evas_object_focus_set(po->smart_obj, EINA_TRUE);
+   _touch_down(po, ev->timestamp, 0, ev->canvas.x, ev->canvas.y);
 }
 
 static void
-_pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
 {
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Up *ev = event;
 
-   DBG("[SURFACE] Mouse Up");
+   _touch_up(po, ev->timestamp, 0);
+}
 
-   pepper_pointer_send_button(po->input.ptr, ev->timestamp, BTN_LEFT, PEPPER_BUTTON_STATE_RELEASED);
+static void
+_pepper_efl_object_evas_cb_multi_down(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
+{
+   pepper_efl_object_t *po = data;
+   Evas_Event_Multi_Down *ev = event;
+
+   _touch_down(po, ev->timestamp, ev->device, ev->canvas.x, ev->canvas.y);
+}
+
+static void
+_pepper_efl_object_evas_cb_multi_up(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   pepper_efl_object_t *po = data;
+   Evas_Event_Multi_Up *ev = event;
+
+   _touch_up(po, ev->timestamp, ev->device);
+}
+
+static void
+_pepper_efl_object_evas_cb_multi_move(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+   pepper_efl_object_t *po = data;
+   Evas_Event_Multi_Move *ev = event;
+
+   _touch_move(po, ev->timestamp, ev->device, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
 static void
@@ -385,6 +435,9 @@ pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surf
    EVENT_ADD(MOUSE_MOVE, mouse_move);
    EVENT_ADD(MOUSE_DOWN, mouse_down);
    EVENT_ADD(MOUSE_UP, mouse_up);
+   EVENT_ADD(MULTI_DOWN, multi_down);
+   EVENT_ADD(MULTI_UP, multi_up);
+   EVENT_ADD(MULTI_MOVE, multi_move);
 
    EVENT_ADD(FOCUS_IN, focus_in);
    EVENT_ADD(FOCUS_OUT, focus_out);
