@@ -88,6 +88,18 @@ _pepper_efl_output_assign_planes(void *o, const pepper_list_t *view_list)
 }
 
 static void
+_pepper_efl_output_start_repaint_loop(void *o)
+{
+   pepper_efl_output_t *output = o;
+   struct timespec     ts;
+
+   DBG("callback start repaint loop");
+
+   pepper_compositor_get_time(output->comp->pepper.comp, &ts);
+   pepper_output_finish_frame(output->base, &ts);
+}
+
+static void
 _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_info EINA_UNUSED)
 {
    pepper_efl_output_t *output = data;
@@ -100,8 +112,6 @@ _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_i
    // couldn't update image.
    EINA_LIST_FREE(output->update_list, es)
       pepper_efl_object_render(es->obj);
-
-   pepper_output_finish_frame(output->base, NULL);
 }
 
 static void
@@ -161,6 +171,7 @@ static const struct pepper_output_backend output_interface =
    _pepper_efl_output_set_mode,
 
    _pepper_efl_output_assign_planes,
+   _pepper_efl_output_start_repaint_loop,
    _pepper_efl_output_repaint,
    _pepper_efl_output_attach_surface,
    _pepper_efl_output_flush_surface
