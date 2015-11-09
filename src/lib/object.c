@@ -191,9 +191,7 @@ _touch_down(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, 
    if (!shsurf)
      return;
 
-   pepper_touch_add_point(po->input.touch, device, rel_x, rel_y);
-   pepper_touch_point_set_focus(po->input.touch, device, shsurf->view);
-   pepper_touch_send_down(po->input.touch, timestamp, device, rel_x, rel_y);
+   pepper_touch_send_down(po->input.touch, shsurf->view, timestamp, device, rel_x, rel_y);
 }
 
 static void
@@ -211,22 +209,28 @@ _touch_up(pepper_efl_object_t *po, unsigned int timestamp, int device)
    if (!shsurf)
      return;
 
-   pepper_touch_send_up(po->input.touch, timestamp, device);
-   pepper_touch_point_set_focus(po->input.touch, device, NULL);
-   pepper_touch_remove_point(po->input.touch, device);
+   pepper_touch_send_up(po->input.touch, shsurf->view, timestamp, device);
 }
 
 static void
 _touch_move(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, int y)
 {
+   pepper_efl_shell_surface_t *shsurf;
    int rel_x, rel_y;
 
    rel_x = x - po->x;
    rel_y = y - po->y;
 
    DBG("Touch (%d) Move: obj %p x %d y %d", device, po->smart_obj, rel_x, rel_y);
+   if (!po->surface)
+     return;
 
-   pepper_touch_send_motion(po->input.touch, timestamp, device, rel_x, rel_y);
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   pepper_touch_send_motion(po->input.touch, shsurf->view, timestamp, device, rel_x, rel_y);
 }
 
 static void
@@ -325,13 +329,13 @@ _pepper_efl_object_evas_cb_focus_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    if (focused_view)
      {
         // send leave message for pre-focused view.
-        pepper_keyboard_send_leave(po->input.kbd);
+        pepper_keyboard_send_leave(po->input.kbd, focused_view);
      }
 
    // replace focused view.
    pepper_keyboard_set_focus(po->input.kbd, shsurf->view);
    // send enter message for newly focused view.
-   pepper_keyboard_send_enter(po->input.kbd);
+   pepper_keyboard_send_enter(po->input.kbd, shsurf->view);
 }
 
 static void
@@ -361,7 +365,7 @@ _pepper_efl_object_evas_cb_focus_out(void *data EINA_UNUSED, Evas *evas EINA_UNU
      }
 
    // send leave message for pre-focused view.
-   pepper_keyboard_send_leave(po->input.kbd);
+   pepper_keyboard_send_leave(po->input.kbd, view);
    // unset focus view.
    pepper_keyboard_set_focus(po->input.kbd, NULL);
 }

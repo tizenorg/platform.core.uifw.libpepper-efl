@@ -51,7 +51,7 @@ _pepper_efl_input_cb_key_down(void *data, int ev_type EINA_UNUSED, Ecore_Event_K
 
    DBG("Key Press: keycode %d", ev->keycode);
 
-   if (!view = pepper_keyboard_get_focus(input->keyboard))
+   if (!(view = pepper_keyboard_get_focus(input->keyboard)))
      goto end;
 
    keycode = (ev->keycode - 8);
@@ -70,7 +70,7 @@ _pepper_efl_input_cb_key_up(void *data, int ev_type EINA_UNUSED, Ecore_Event_Key
 
    DBG("Key Release: keycode %d", ev->keycode);
 
-   if (!view = pepper_keyboard_get_focus(input->keyboard))
+   if (!(view = pepper_keyboard_get_focus(input->keyboard)))
      goto end;
 
    keycode = (ev->keycode - 8);
