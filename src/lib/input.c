@@ -46,15 +46,16 @@ static Eina_Bool
 _pepper_efl_input_cb_key_down(void *data, int ev_type EINA_UNUSED, Ecore_Event_Key *ev)
 {
    pepper_efl_input_t *input = data;
+   pepper_view_t  *view;
    uint32_t keycode;
 
    DBG("Key Press: keycode %d", ev->keycode);
 
-   if (!pepper_keyboard_get_focus(input->keyboard))
+   if (!view = pepper_keyboard_get_focus(input->keyboard))
      goto end;
 
    keycode = (ev->keycode - 8);
-   pepper_keyboard_send_key(input->keyboard, ev->timestamp, keycode,
+   pepper_keyboard_send_key(input->keyboard, view, ev->timestamp, keycode,
                             WL_KEYBOARD_KEY_STATE_PRESSED);
 end:
    return ECORE_CALLBACK_RENEW;
@@ -64,15 +65,16 @@ static Eina_Bool
 _pepper_efl_input_cb_key_up(void *data, int ev_type EINA_UNUSED, Ecore_Event_Key *ev)
 {
    pepper_efl_input_t *input = data;
+   pepper_view_t  *view;
    uint32_t keycode;
 
    DBG("Key Release: keycode %d", ev->keycode);
 
-   if (!pepper_keyboard_get_focus(input->keyboard))
+   if (!view = pepper_keyboard_get_focus(input->keyboard))
      goto end;
 
    keycode = (ev->keycode - 8);
-   pepper_keyboard_send_key(input->keyboard, ev->timestamp, keycode,
+   pepper_keyboard_send_key(input->keyboard, view, ev->timestamp, keycode,
                             WL_KEYBOARD_KEY_STATE_RELEASED);
 end:
    return ECORE_CALLBACK_RENEW;
