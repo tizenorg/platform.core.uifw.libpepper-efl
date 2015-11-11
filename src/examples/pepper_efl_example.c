@@ -428,66 +428,54 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 
    /* buttons */
    bt = elm_button_add(win);
+   bt2 = elm_button_add(win);
+   bt3 = elm_button_add(win);
+   bt4 = elm_button_add(win);
+   swap_bt = elm_button_add(win);
+   close_bt = elm_button_add(win);
+   
    elm_object_text_set(bt, "TOUCH");
+   elm_object_text_set(bt2, "THREAD");
+   elm_object_text_set(bt3, "HOLD");
+   elm_object_text_set(bt4, "ENTRY");
+   elm_object_text_set(swap_bt, "Make");
+   elm_object_text_set(close_bt, "CLOSE");
+   
    evas_object_smart_callback_add(bt, "clicked", _button_cb, d);
+   evas_object_smart_callback_add(bt2, "clicked", _button2_cb, d);
+   evas_object_smart_callback_add(bt3, "clicked", _button3_cb, d);
+   evas_object_smart_callback_add(bt4, "clicked", _button4_cb, d);
+   evas_object_smart_callback_add(swap_bt, "clicked", _mode_swap_cb, d);   
+   evas_object_smart_callback_add(close_bt, "clicked", _close_cb, NULL);
+
    elm_box_pack_end(upper_bx, bt);
+   elm_box_pack_end(upper_bx, bt2);
+   elm_box_pack_end(upper_bx, bt3);
+   elm_box_pack_end(upper_bx, bt4);
+   elm_box_pack_end(upper_bx2, swap_bt);
+   elm_box_pack_end(upper_bx2, close_bt);
+
    evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(bt);
-
-   bt2 = elm_button_add(win);
-   elm_object_text_set(bt2, "THREAD");
-   evas_object_smart_callback_add(bt2, "clicked", _button2_cb, d);
-   elm_box_pack_end(upper_bx, bt2);
    evas_object_size_hint_weight_set(bt2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(bt2, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(bt2);
-
-   bt3 = elm_button_add(win);
-   elm_object_text_set(bt3, "HOLD");
-   evas_object_smart_callback_add(bt3, "clicked", _button3_cb, d);
-   elm_box_pack_end(upper_bx, bt3);
    evas_object_size_hint_weight_set(bt3, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(bt3, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(bt3);
-
-   bt4 = elm_button_add(win);
-   elm_object_text_set(bt4, "ENTRY");
-   evas_object_smart_callback_add(bt4, "clicked", _button4_cb, d);
-   elm_box_pack_end(upper_bx, bt4);
    evas_object_size_hint_weight_set(bt4, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(bt4, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(bt4);
-
-
-   /* TODO when the reset function fixed, reset button should inserted in the box. */
-   /*
-   reset_bt = elm_button_add(win);
-   elm_object_text_set(reset_bt, "RESET");
-   evas_object_smart_callback_add(reset_bt, "clicked", _reset_cb, d);
-   elm_box_pack_end(upper_bx, reset_bt);
-   evas_object_size_hint_weight_set(reset_bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(reset_bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(reset_bt);
-   */
-
-   swap_bt = elm_button_add(win);
-   elm_object_text_set(swap_bt, "Make");
-   evas_object_smart_callback_add(swap_bt, "clicked", _mode_swap_cb, d);
-   elm_box_pack_end(upper_bx2, swap_bt);
    evas_object_size_hint_weight_set(swap_bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(swap_bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(swap_bt);
-
-   d->swap_bt = swap_bt;
-
-   close_bt = elm_button_add(win);
-   elm_object_text_set(close_bt, "CLOSE");
-   evas_object_smart_callback_add(close_bt, "clicked", _close_cb, NULL);
-   elm_box_pack_end(upper_bx2, close_bt);
    evas_object_size_hint_weight_set(close_bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(close_bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
+
+   evas_object_show(bt);
+   evas_object_show(bt2);
+   evas_object_show(bt3);
+   evas_object_show(bt4);
+   evas_object_show(swap_bt);
    evas_object_show(close_bt);
+
+   d->swap_bt = swap_bt;
 
    /* scroller */
    scroller = elm_scroller_add(bx);
