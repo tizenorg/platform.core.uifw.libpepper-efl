@@ -2,7 +2,7 @@ Name:       libpepper-efl
 Version:    0.0.1
 Release:    0
 Summary:    EFL backend for pepper
-License:    MIT
+License:    MIT LGPL-2.1
 Group:      Graphics & UI Framework/Wayland Window System
 
 Source:     %{name}-%{version}.tar.xz
