@@ -90,7 +90,13 @@ _pepper_efl_output_assign_planes(void *o, const pepper_list_t *view_list)
 static void
 _pepper_efl_output_start_repaint_loop(void *o)
 {
+   pepper_efl_output_t *output = o;
+   struct timespec     ts;
+
    DBG("callback start repaint loop");
+
+   pepper_compositor_get_time(output->comp->pepper.comp, &ts);
+   pepper_output_finish_frame(output->base, &ts);
 }
 
 static void
@@ -115,8 +121,10 @@ _pepper_efl_output_repaint(void *o EINA_UNUSED, const pepper_list_t *plane_list 
 
    DBG("callback output");
 
-   EINA_LIST_FOREACH(output->update_list, l, es)
+   EINA_LIST_FOREACH(output->update_list, l, es) {
       pepper_efl_object_render(es->obj);
+      output->update_list = eina_list_remove_list(output->update_list, l);
+   }
 }
 
 static void

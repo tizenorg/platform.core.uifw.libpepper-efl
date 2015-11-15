@@ -23,7 +23,7 @@ _add_object_cb (void *data, Evas_Object *obj, void *event_info)
    app_data *d = data;
 
    evas_object_geometry_get(img, &x, &y, &w, &h);
-   fprintf(stderr, "[ECOMP] _add_object_cb %p(%dx%d+%d+%d)\n",w, h, x, y);
+   fprintf(stderr, "[ECOMP] _add_object_cb %p:%p(%dx%d+%d+%d)\n",obj, img, w, h, x, y);
 
    x = rand()%(WIDTH-w);
    y = rand()%(HEIGHT-h);
@@ -37,7 +37,7 @@ _del_object_cb(void *d, Evas_Object *obj, void *event_info)
    Evas_Object *img = event_info;
    if (img)
      {
-        fprintf(stderr,"[ECOMP] _del_object_cb %p\n", img);
+        fprintf(stderr,"[ECOMP] _del_object_cb %p:%p\n", obj, img);
      }
    evas_object_del(img);
 }
