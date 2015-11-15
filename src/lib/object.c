@@ -191,6 +191,7 @@ _touch_down(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, 
    if (!shsurf)
      return;
 
+   pepper_touch_add_point(po->input.touch, device, rel_x, rel_y);
    pepper_touch_send_down(po->input.touch, shsurf->view, timestamp, device, rel_x, rel_y);
 }
 
@@ -210,6 +211,7 @@ _touch_up(pepper_efl_object_t *po, unsigned int timestamp, int device)
      return;
 
    pepper_touch_send_up(po->input.touch, shsurf->view, timestamp, device);
+   pepper_touch_remove_point(po->input.touch, device);
 }
 
 static void
@@ -238,6 +240,8 @@ _pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
 {
    DBG("Mouse In");
    // Nothing to do for now.
+
+   fprintf(stderr, "[touch] in\n");
 }
 
 static void
@@ -245,6 +249,8 @@ _pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNU
 {
    DBG("Mouse Out");
    // Nothing to do for now.
+
+   fprintf(stderr, "[touch] out\n");
 }
 
 static void
@@ -253,6 +259,7 @@ _pepper_efl_object_evas_cb_mouse_move(void *data, Evas *evas EINA_UNUSED, Evas_O
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Move *ev = event;
 
+   fprintf(stderr, "[touch] move id:%d %dx%d\n", 0, ev->cur.canvas.x, ev->cur.canvas.y);
    _touch_move(po, ev->timestamp, 0, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
@@ -262,6 +269,7 @@ _pepper_efl_object_evas_cb_mouse_down(void *data, Evas *evas EINA_UNUSED, Evas_O
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Down *ev = event;
 
+   fprintf(stderr, "[touch] down id:%d %dx%d\n", 0, ev->canvas.x, ev->canvas.y);
    _touch_down(po, ev->timestamp, 0, ev->canvas.x, ev->canvas.y);
 }
 
@@ -271,6 +279,7 @@ _pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Up *ev = event;
 
+   fprintf(stderr, "[touch] up id:%d %dx%d\n", 0, ev->canvas.x, ev->canvas.y);
    _touch_up(po, ev->timestamp, 0);
 }
 
@@ -280,6 +289,7 @@ _pepper_efl_object_evas_cb_multi_down(void *data, Evas *evas EINA_UNUSED, Evas_O
    pepper_efl_object_t *po = data;
    Evas_Event_Multi_Down *ev = event;
 
+   fprintf(stderr, "[touch] down id:%d %dx%d\n", ev->device, ev->canvas.x, ev->canvas.y);
    _touch_down(po, ev->timestamp, ev->device, ev->canvas.x, ev->canvas.y);
 }
 
@@ -289,6 +299,7 @@ _pepper_efl_object_evas_cb_multi_up(void *data EINA_UNUSED, Evas *evas EINA_UNUS
    pepper_efl_object_t *po = data;
    Evas_Event_Multi_Up *ev = event;
 
+   fprintf(stderr, "[touch] down id:%d %dx%d\n", ev->device, ev->canvas.x, ev->canvas.y);
    _touch_up(po, ev->timestamp, ev->device);
 }
 
@@ -298,6 +309,7 @@ _pepper_efl_object_evas_cb_multi_move(void *data EINA_UNUSED, Evas *evas EINA_UN
    pepper_efl_object_t *po = data;
    Evas_Event_Multi_Move *ev = event;
 
+   fprintf(stderr, "[touch] move id:%d %dx%d\n", ev->device, ev->cur.canvas.x, ev->cur.canvas.y);
    _touch_move(po, ev->timestamp, ev->device, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
