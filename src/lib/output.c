@@ -90,13 +90,7 @@ _pepper_efl_output_assign_planes(void *o, const pepper_list_t *view_list)
 static void
 _pepper_efl_output_start_repaint_loop(void *o)
 {
-   pepper_efl_output_t *output = o;
-   struct timespec     ts;
-
    DBG("callback start repaint loop");
-
-   pepper_compositor_get_time(output->comp->pepper.comp, &ts);
-   pepper_output_finish_frame(output->base, &ts);
 }
 
 static void
@@ -104,14 +98,12 @@ _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_i
 {
    pepper_efl_output_t *output = data;
    pepper_efl_surface_t *es;
+   struct timespec     ts;
 
    DBG("render post");
 
-   // FIXME: I'm not sure why this do twice both in output_repaint and render_post,
-   // but if we remove it, then the client commiting only once when launched
-   // couldn't update image.
-   EINA_LIST_FREE(output->update_list, es)
-      pepper_efl_object_render(es->obj);
+   pepper_compositor_get_time(output->comp->pepper.comp, &ts);
+   pepper_output_finish_frame(output->base, &ts);
 }
 
 static void
@@ -219,7 +211,7 @@ pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
    output->bpp = 32;
    output->stride = output->w * (output->bpp / 8);
    output->base = pepper_compositor_add_output(comp->pepper.comp,
-                                               &output_interface, "efl", output);
+                                               &output_interface, "efl", output, WL_OUTPUT_TRANSFORM_NORMAL, 1);
    if (!output->base)
      {
         ERR("failed add output to compositor");

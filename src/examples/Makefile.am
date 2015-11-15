@@ -19,7 +19,7 @@ entry_sample_CFLAGS = @ELEMENTARY_CFLAGS@
 entry_sample_LDADD = @ELEMENTARY_LIBS@
 
 
-bin_PROGRAMS = pepper_efl_example
+bin_PROGRAMS = pepper_efl_example pepper_efl_simple
 
 pepper_efl_example_SOURCES = pepper_efl_example.c
 pepper_efl_example_CFLAGS = 				\
@@ -28,6 +28,16 @@ pepper_efl_example_CFLAGS = 				\
         -DSAMPLE_PATH=\"$(widgets_bindir)\"             \
         @ELEMENTARY_CFLAGS@
 pepper_efl_example_LDADD = 				\
+	$(top_builddir)/src/lib/libpepper-efl.la	\
+	@ELEMENTARY_LIBS@
+
+pepper_efl_simple_SOURCES = pepper_efl_simple.c
+pepper_efl_simple_CFLAGS = 				\
+	-I$(top_builddir)/src/lib/			\
+        -DDATA_PATH=\"$(datafilesdir)\"                 \
+        -DSAMPLE_PATH=\"$(widgets_bindir)\"             \
+        @ELEMENTARY_CFLAGS@
+pepper_efl_simple_LDADD = 				\
 	$(top_builddir)/src/lib/libpepper-efl.la	\
 	@ELEMENTARY_LIBS@
 
