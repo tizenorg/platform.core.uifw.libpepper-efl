@@ -1,0 +1,18 @@
+@startuml
+
+actor user
+create desktop_shell
+user->desktop_shell : pepper_desktop_shell_init(compositor)
+desktop_shell->desktop_shell : init wl_shell
+desktop_shell->desktop_shell : init xdg_shell
+desktop_shell->desktop_shell : init_listeners
+activate desktop_shell
+	desktop_shell -> compositor: add event listener
+	note right
+		PEPPER_EVENT_COMPOSITOR_INPUT_DEVICE_ADD
+		PEPPER_EVENT_COMPOSITOR_SEAT_ADD
+		PEPPER_EVENT_COMPOSITOR_SEAT_REMOVE
+	endnote
+deactivate desktop_shell
+
+@enduml

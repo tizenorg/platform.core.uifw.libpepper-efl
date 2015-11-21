@@ -1,0 +1,64 @@
+@startuml
+actor client
+participant compositor <<pepper>>
+participant pepper_seat
+participant input_device <<pepper>>
+participant input_manager
+
+create pepper_seat
+compositor -> pepper_seat : pepper_compositor_add_seat(name)
+pepper_seat -> compositor: add global for wl_seat
+compositor ->] : send  PEPPER_EVENT_COMPOSITOR_SEAT_ADD
+compositor ->input_device : pepper_input_device_create
+input_device -> input_device : initialize
+input_device -> compositor : add input_device
+compositor ->] :PEPPER_EVENT_COMPOSITOR_INPUT_DEVICE_ADD
+
+input_manager <-] :PEPPER_EVENT_COMPOSITOR_INPUT_DEVICE_ADD
+input_manager -> pepper_seat : pepper_seat_add_input_device
+pepper_seat -> pepper_seat : add input_device to list
+pepper_seat -> pepper_seat : seat_update_caps(seat)
+activate pepper_seat
+	alt new input caps
+		pepper_seat -> pepper_seat : seat_update_pointer_cap
+		activate pepper_seat
+			alt add new pointer
+				pepper_seat -> pepper_seat : init pepper_pointer
+				pepper_seat ->] : emit::PEPPER_EVENT_SEAT_POINTER_ADD
+			else
+				pepper_seat -> pepper_seat : fini pepper_pointer
+				pepper_seat ->] : emit::PEPPER_EVENT_SEAT_POINTER_REMOVE
+			end
+			
+			pepper_seat -> pepper_seat : update touch
+			pepper_seat -> pepper_seat : update keyboard
+			
+			loop wl_seat list
+				[<-pepper_seat: send wl_seat_send_capabilities
+			end
+		deactivate pepper_seat
+	end
+deactivate pepper_seat
+pepper_seat -> input_device : add Event Listener::PEPPER_EVENT_ALL
+note right
+    PEPPER_EVENT_INPUT_DEVICE_POINTER_MOTION
+    PEPPER_EVENT_INPUT_DEVICE_POINTER_MOTION_ABSOLUTE,
+    PEPPER_EVENT_INPUT_DEVICE_POINTER_BUTTON,
+    PEPPER_EVENT_INPUT_DEVICE_POINTER_AXIS,
+
+    PEPPER_EVENT_INPUT_DEVICE_KEYBOARD_KEY,
+
+    PEPPER_EVENT_INPUT_DEVICE_TOUCH_DOWN,
+    PEPPER_EVENT_INPUT_DEVICE_TOUCH_UP,
+    PEPPER_EVENT_INPUT_DEVICE_TOUCH_MOTION,
+    PEPPER_EVENT_INPUT_DEVICE_TOUCH_FRAME,
+    PEPPER_EVENT_INPUT_DEVICE_TOUCH_CANCEL,
+endnote
+client <- compositor : registry::wl_seat
+client -> pepper_seat : bind(wl_seat)
+pepper_seat -> pepper_seat : create wl_resource for wl_seat
+pepper_seat -> pepper_seat : add wl_resource to list
+
+client -> pepper_seat : wl_seat_get_pointer
+pepper_seat -> pepper_seat : create wl_resource for wl_pointer
+@enduml

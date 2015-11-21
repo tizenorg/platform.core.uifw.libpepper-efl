@@ -1,0 +1,121 @@
+@startuml
+
+class pepper_object_t
+class pepper_compositor_t
+class pepper_output_t
+class pepper_seat_t
+class pepper_surface_t
+class pepper_buffer_t
+class pepper_view_t
+
+pepper_object_t <|-- pepper_compositor_t
+pepper_object_t <|-- pepper_output_t
+pepper_object_t <|-- pepper_seat_t
+pepper_object_t <|-- pepper_surface_t
+pepper_object_t <|-- pepper_buffer_t
+pepper_object_t <|-- pepper_view_t
+
+pepper_compositor_t *-- pepper_seat_t
+pepper_compositor_t *-- pepper_output_t
+
+class pepper_output_backend_t <<interface>> {
+ {abstract}destroy(void* output)
+ 
+ {abstract}get_subpixel_order()
+ {abstract}get_maker_name()
+ {abstract}get_model_name()
+ {abstract}get_mode_count()
+ {abstract}get_mode()
+ {abstract}set_mode()
+ 
+ {abstract}assign_planes()
+ {abstract}repaint()
+ {abstract}attach_surface()
+ -- listener--
+ {abstract}add_destroy_listener()
+ {abstract}add_mode_change_listender()
+ {abstract}add_frame_listener()
+}
+pepper_output_t "1" *-- "1" pepper_output_backend_t
+
+class pepper_drm_output_backend
+pepper_output_backend_t <|-- pepper_drm_output_backend : Implementation
+
+class pepper_fbdev_output_backend
+pepper_output_backend_t <|-- pepper_fbdev_output_backend : Implementation
+
+class pepper_wayland_output_backend
+pepper_output_backend_t <|-- pepper_wayland_output_backend : Implementation
+
+class pepper_x11_output_backend
+pepper_output_backend_t <|-- pepper_x11_output_backend : Implementation
+
+class pepper_renderer_t <<interface>> {
+	pepper_compositor_t *compositor
+	pepper_render_target_t *target
+	
+	{abstract}destroy()
+	{abstract}attach_surface()
+	{abstract}flush_surface_damage()
+	{abstract}read_pixels()
+	{abstract}repaint_output()
+}
+
+class pepper_pixman_renderer 
+pepper_renderer_t <|-- pepper_pixman_renderer
+
+class pepper_gl_renderer
+pepper_renderer_t <|-- pepper_gl_renderer
+
+class pepper_render_target_t<<interface>> {
+	pepper_renderer_t *renderer
+	
+	{abstract}destroy()
+}
+pepper_renderer_t "1" -- "1" pepper_render_target_t
+
+class pepper_pixman_render_target
+pepper_render_target_t <|-- pepper_pixman_render_target
+pepper_drm_output_backend *-- pepper_pixman_render_target
+pepper_fbdev_output_backend *-- pepper_pixman_render_target
+pepper_wayland_output_backend *-- pepper_pixman_render_target
+pepper_x11_output_backend *-- pepper_pixman_render_target
+
+class pepper_gl_render_target
+pepper_render_target_t <|-- pepper_gl_render_target
+pepper_drm_output_backend *-- pepper_gl_render_target
+pepper_x11_output_backend *-- pepper_gl_render_target
+
+class pepper_plane_t {
+	pepper_output_t *output
+	pixman_region32_t damage_region
+	pixman_region32_t clip_region
+	
+	pepper_plane_create()
+	pepper_plane_add_damage_region()
+	pepper_plane_accumulate_damage()
+	pepper_plane_update()
+}
+
+class pepper_drm #PaleGreen {
+	pepper_compositor_t *compositor
+	wl_list *output_list
+	pepper_renderer_t *pixman_renderer
+	pepper_renderer_t *gl_renderer
+	pepper_list_t plane_list
+	
+	pepper_drm_create()
+	pepper_drm_destroy()
+}
+
+pepper_drm *-- pepper_compositor_t
+pepper_drm *-- pepper_gl_renderer
+pepper_drm *-- pepper_pixman_renderer
+
+
+class pepper_drm_output #PaleGreen
+pepper_drm "1" *-- "n" pepper_drm_output
+pepper_drm_output *-- pepper_drm_output_backend
+pepper_drm_output *-- pepper_plane_t
+
+@enduml

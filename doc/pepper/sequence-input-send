@@ -1,0 +1,11 @@
+@startuml
+actor client
+participant compositor <<pepper>>
+participant pepper_seat
+participant input_device <<pepper>>
+participant input_manager
+
+input_device <-] : Press_key
+input_device ->] : emit PEPPER_EVENT_INPUT_DEVICE_KEYBOARD_KEY
+pepper_seat <-] : call callback::PEPPER_EVENT_INPUT_DEVICE_KEYBOARD_KEY
+@enduml

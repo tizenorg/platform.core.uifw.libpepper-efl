@@ -1,0 +1,44 @@
+@startuml
+actor user
+
+participant pepper_efl 
+participant xdg_shell
+participant pepper
+
+
+user->pepper_efl : 1 : pepper_efl_compositor_destroy(name)
+activate pepper_efl
+
+alt output
+pepper_efl->pepper : 2 : pepper_output_destroy()
+pepper->pepper : 3 : wl_global_destroy()
+end alt
+
+alt shell
+pepper_efl->xdg_shell : 4 : pepper_efl_shell_shutdown()
+end alt 
+
+alt input
+pepper_efl->pepper_efl : 5 : pepper_efl_input_destroy()
+activate pepper_efl
+pepper_efl->pepper : 6 : pepper_seat_remove_input_device()
+pepper_efl->pepper : 7 : pepper_input_device_destroy()
+pepper_efl->pepper : 8 : pepper_seat_destroy()
+pepper->pepper : 9 : wl_global_destroy()
+deactivate pepper_efl
+end alt
+
+alt compositor
+pepper_efl->pepper : 10 : pepper_compositor_destroy()
+pepper->pepper : 11 : wl_display_destroy()
+end alt
+pepper_efl->pepper_efl : 12 : delete fd_handler
+pepper_efl->user : 13 : return true if succeeded
+deactivate pepper_efl
+
+
+deactivate pepper_efl
+
+
+
+@enduml

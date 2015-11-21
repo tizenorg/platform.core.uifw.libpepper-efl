@@ -1,0 +1,17 @@
+@startuml
+title Create surface
+actor user
+user -> compositor : wl_compositor_create_surface
+create surface
+compositor -> surface:new::pepper_surface_create
+surface -> surface: initialize
+note right
+	state, regions, frame_callback_list, view_list
+end note
+surface -> compositor : return new surface
+
+note left: need change
+compositor -> compositor: add to surface_list
+compositor -->]:  PEPPER_EVENT_COMPOSITOR_SURFACE_ADD
+
+@enduml

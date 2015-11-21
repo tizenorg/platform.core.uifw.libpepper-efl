@@ -1,0 +1,25 @@
+@startuml
+actor user
+
+participant pepper_efl 
+participant pepper
+participant wayland_client
+
+alt pointer
+user->pepper_efl : 1 : mouse move
+pepper_efl->pepper : 2 : pepper_pointer_send_motion
+pepper->wayland_client : 3 : wl_pointer_send_motion()
+user->pepper_efl : 4 : mouse down/up
+pepper_efl->pepper : 5 : pepper_pointer_send_button
+pepper->wayland_client : 6 : wl_pointer_send_button()
+user->pepper_efl : 7 : mouse in/out
+pepper_efl->pepper : 8 : pepper_pointer_set_focus
+pepper->wayland_client : 9 : wl_pointer_send_enter/leave()
+end alt
+alt keyboard
+user->pepper_efl : 10 : key up/down
+pepper_efl->pepper : 11 : pepper_keyboard_send_key
+pepper->wayland_client : 12 : wl_keyboard_send_key()
+end alt
+
+@enduml
