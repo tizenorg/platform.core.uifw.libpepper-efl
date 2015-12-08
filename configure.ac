@@ -14,8 +14,8 @@ AC_PROG_LIBTOOL
 
 # Checks for libraries.
 PKG_CHECK_MODULES([PEPPER], [pepper xkbcommon])
-PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server])
-PKG_CHECK_MODULES([EFL], [eina ecore ecore-input evas])
+PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server tizen-extension-client])
+PKG_CHECK_MODULES([EFL], [eina ecore ecore-input evas ecore-wayland])
 
 
 AC_ARG_ENABLE([examples],

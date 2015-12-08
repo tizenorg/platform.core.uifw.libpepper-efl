@@ -12,6 +12,8 @@ BuildRequires: pkgconfig(pepper)
 BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(xdg-shell-server)
 BuildRequires: pkgconfig(xkbcommon)
+BuildRequires: pkgconfig(tizen-extension-client)
+BuildRequires: pkgconfig(ecore-wayland)
 Requires: libwayland-extension-server
 
 %description

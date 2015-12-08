@@ -8,10 +8,11 @@
 // EFL header
 #include <Eina.h>
 #include <Ecore.h>
-
+#include <Ecore_Wayland.h>
 // wayland compositor header
 #include <pepper.h>
 #include <wayland-server.h>
+#include <tizen-extension-client-protocol.h>
 
 // internal header
 #include "private.h"
@@ -35,6 +36,55 @@ _pepper_efl_compositor_cb_fd_prepare(void *data, Ecore_Fd_Handler *hdlr EINA_UNU
    pepper_efl_comp_t *comp = data;
 
    wl_display_flush_clients(comp->wl.disp);
+}
+
+static void
+_pepper_efl_compositor_socket(void *data, struct tizen_embedded_compositor *tec, int fd)
+{
+   int *socket_fd = (int*)data;
+
+   *socket_fd = fd;
+   return;
+}
+
+static const struct tizen_embedded_compositor_listener tizen_embedded_compositor_listener =
+{
+   _pepper_efl_compositor_socket
+};
+
+static int
+_pepper_efl_compositor_get_socket_fd_from_server(pepper_efl_comp_t *comp)
+{
+   Eina_Inlist *l, *tmp;
+   Ecore_Wl_Global *global;
+   struct tizen_embedded_compositor *tec=NULL;
+   int fd = -1;
+
+   l = ecore_wl_globals_get();
+   if (!l)
+      return -1;
+
+   EINA_INLIST_FOREACH_SAFE(l, tmp, global)
+     {
+        if (!strcmp(global->interface, "tizen_embedded_compositor"))
+          {
+             tec = wl_registry_bind(ecore_wl_registry_get(),
+                         global->id,
+                         &tizen_embedded_compositor_interface,
+                         1);
+             tizen_embedded_compositor_add_listener(tec, &tizen_embedded_compositor_listener, &fd);
+             break;
+          }
+     }
+
+   if (!tec)
+      return -1;
+
+   tizen_embedded_compositor_get_socket(tec);
+   ecore_wl_sync();
+
+   tizen_embedded_compositor_destroy(tec);
+   return fd;
 }
 
 Eina_Bool
@@ -86,6 +136,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
    pepper_efl_output_t *output;
    Eina_Bool first_init = EINA_FALSE;
    int loop_fd;
+   int socket_fd = -1;
    const char *sock_name;
 
    pthread_mutex_lock(&_comp_hash_lock);
@@ -117,7 +168,6 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
      }
 
    DBG("create compositor");
-
    comp = calloc(1, sizeof(pepper_efl_comp_t));
    if (!comp)
      {
@@ -125,7 +175,15 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_alloc;
      }
 
-   comp->pepper.comp = pepper_compositor_create(name);
+   DBG("Get socket_fd from server");
+   socket_fd = _pepper_efl_compositor_get_socket_fd_from_server(comp);
+   if (socket_fd == -1)
+     {
+        ERR("failed to get socket_fd from server");
+        goto err_comp;
+     }
+
+   comp->pepper.comp = pepper_compositor_create_fd(name, socket_fd);
    if (!comp->pepper.comp)
      {
         ERR("failed to create pepper compositor");
