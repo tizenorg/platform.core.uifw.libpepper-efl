@@ -206,6 +206,12 @@ static const struct xdg_surface_interface xdg_surface_implementation =
    xdg_surface_set_minimized,
 };
 
+static void xdg_shell_cb_destroy(struct wl_client *client,
+         struct wl_resource *resource)
+{
+   DBG("-");
+}
+
 static void
 xdg_shell_cb_use_unstable_version(struct wl_client *client, struct wl_resource *resource, int32_t version)
 {
@@ -278,7 +284,7 @@ err:
 }
 
 static void
-xdg_shell_cb_popup_get(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource, struct wl_resource *parent_resource, struct wl_resource *seat_resource, uint32_t serial, int32_t x, int32_t y, uint32_t flags)
+xdg_shell_cb_popup_get(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource, struct wl_resource *parent_resource, struct wl_resource *seat_resource, uint32_t serial, int32_t x, int32_t y)
 {
    DBG("-");
 }
@@ -290,6 +296,7 @@ xdg_shell_cb_pong(struct wl_client *client, struct wl_resource *resource, uint32
 }
 
 static const struct xdg_shell_interface xdg_implementation = {
+   xdg_shell_cb_destroy,
    xdg_shell_cb_use_unstable_version,
    xdg_shell_cb_surface_get,
    xdg_shell_cb_popup_get,

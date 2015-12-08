@@ -103,7 +103,6 @@ static void
 _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_info EINA_UNUSED)
 {
    pepper_efl_output_t *output = data;
-   pepper_efl_surface_t *es;
    struct timespec     ts;
 
    DBG("render post");
@@ -152,10 +151,11 @@ end:
 }
 
 static void
-_pepper_efl_output_flush_surface(void *o, pepper_surface_t *surface)
+_pepper_efl_output_flush_surface(void *o, pepper_surface_t *surface, pepper_bool_t *keep_buffer)
 {
    (void)o;
    (void)surface;
+   (void)keep_buffer;
 }
 
 static const struct pepper_output_backend output_interface =

@@ -10,17 +10,10 @@ typedef struct
 } app_data;
 
 static void
-_close_cb(void *data, Evas_Object *obj, void *event_info)
-{
-   elm_exit();
-}
-
-static void
 _add_object_cb (void *data, Evas_Object *obj, void *event_info)
 {
    Evas_Coord x, y, w,h;
    Evas_Object *img = event_info;
-   app_data *d = data;
 
    evas_object_geometry_get(img, &x, &y, &w, &h);
    fprintf(stderr, "[ECOMP] _add_object_cb %p:%p(%dx%d+%d+%d)\n",obj, img, w, h, x, y);
@@ -67,9 +60,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    app_data *d;
    Evas_Object *win;
    const char *comp_name;
-   char border_path[64];
    int ret = EXIT_FAILURE;
-   int i, j;
 
    d = calloc(1, sizeof(app_data));
 

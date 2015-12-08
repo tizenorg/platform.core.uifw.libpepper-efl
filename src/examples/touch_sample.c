@@ -53,7 +53,7 @@ int
 main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
 {
    Evas_Object *win;
-   Evas_Object *button, *rect;
+   Evas_Object *button, *rect=NULL;
    Evas_Object *bx;
 
    elm_init(argc, argv);
@@ -66,6 +66,13 @@ main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    elm_win_resize_object_add(win, bx);
    evas_object_show(bx);
 
+   rect = evas_object_rectangle_add(win);
+   evas_object_color_set(rect, 125, 0, 0, 255);
+   evas_object_size_hint_weight_set(rect, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   evas_object_size_hint_align_set(rect, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(bx, rect);
+   evas_object_show(rect);
+
    button = elm_button_add(win);
    evas_object_size_hint_weight_set(button, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(button, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -73,13 +80,6 @@ main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    elm_box_pack_end(bx, button);
    evas_object_event_callback_add(button, EVAS_CALLBACK_MOUSE_UP, bt_cb, rect);
    evas_object_show(button);
-
-   rect = evas_object_rectangle_add(win);
-   evas_object_color_set(rect, 125, 0, 0, 255);
-   evas_object_size_hint_weight_set(rect, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(rect, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_box_pack_end(bx, rect);
-   evas_object_show(rect);
 
    elm_run();
    elm_shutdown();
