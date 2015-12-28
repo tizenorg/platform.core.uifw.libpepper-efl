@@ -325,7 +325,7 @@ _pepper_efl_object_evas_cb_focus_in(void *data, Evas *evas EINA_UNUSED, Evas_Obj
 
    shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
                                         pepper_surface_get_role(po->surface));
-   if ((!shsurf) && (!shsurf->view))
+   if ((!shsurf) || (!shsurf->view))
      return;
 
    DBG("[OBJECT] Focus In: obj %p, shsurf %p", obj, shsurf);
