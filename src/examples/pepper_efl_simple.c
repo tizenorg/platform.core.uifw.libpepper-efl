@@ -74,7 +74,8 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    /* pepper_efl init */
    comp_name = pepper_efl_compositor_create(win, "pepper-efl");
    if (!comp_name)
-     return ret;
+     goto err;
+
    fprintf(stderr, "display name:%s\n", comp_name);
 
    evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, _add_object_cb, d);
@@ -83,6 +84,11 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    elm_run();
 
    pepper_efl_compositor_destroy(comp_name);
+
+   ret = EXIT_SUCCESS;
+
+err:
+   free(d);
    return ret;
 }
 ELM_MAIN()
