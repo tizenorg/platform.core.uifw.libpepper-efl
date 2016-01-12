@@ -37,6 +37,7 @@ struct pepper_efl_shell_surface
    Eina_Bool ack_configure;
 
    const char *title;
+   const char *app_id;
 };
 
 Eina_Bool   pepper_efl_shell_init(pepper_efl_comp_t *comp);

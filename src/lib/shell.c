@@ -113,7 +113,12 @@ xdg_surface_set_title(struct wl_client *client, struct wl_resource *resource, co
 static void
 xdg_surface_set_app_id(struct wl_client *client, struct wl_resource *resource, const char *app_id)
 {
+   pepper_efl_shell_surface_t *shsurf = wl_resource_get_user_data(resource);
    DBG("client %p", client);
+
+   if (shsurf->app_id)
+     eina_stringshare_del(shsurf->app_id);
+   shsurf->app_id = eina_stringshare_add(app_id);
 }
 
 static void

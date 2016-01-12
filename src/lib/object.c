@@ -597,3 +597,29 @@ pepper_efl_object_title_get(Evas_Object *obj)
    return title;
 }
 
+const char *
+pepper_efl_object_app_id_get(Evas_Object *obj)
+{
+   OBJ_DATA_GET NULL;
+
+   pepper_efl_shell_surface_t *shsurf = NULL;
+   pepper_surface_t *surface = NULL;
+   const char *app_id = NULL;
+
+   surface = po->surface;
+
+   if (surface)
+     {
+        shsurf = pepper_object_get_user_data((pepper_object_t *)surface,
+                                             pepper_surface_get_role(surface));
+
+        if (shsurf)
+          app_id = shsurf->app_id;
+     }
+
+   if (app_id)
+     DBG("[OBJECT] App_id Get : %s", app_id);
+
+   return app_id;
+}
+
