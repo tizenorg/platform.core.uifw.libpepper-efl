@@ -89,7 +89,7 @@ shsurf_xdg_surface_send_configure(pepper_efl_shell_surface_t *shsurf, int32_t wi
 }
 
 static void
-xdg_surface_destroy(struct wl_client *client, struct wl_resource *resource)
+xdg_surface_cb_destroy(struct wl_client *client, struct wl_resource *resource)
 {
    DBG("client %p", client);
 
@@ -97,13 +97,13 @@ xdg_surface_destroy(struct wl_client *client, struct wl_resource *resource)
 }
 
 static void
-xdg_surface_set_parent(struct wl_client *client, struct wl_resource *resource, struct wl_resource *parent_resource)
+xdg_surface_cb_set_parent(struct wl_client *client, struct wl_resource *resource, struct wl_resource *parent_resource)
 {
    DBG("client %p", client);
 }
 
 static void
-xdg_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title)
+xdg_surface_cb_set_title(struct wl_client *client, struct wl_resource *resource, const char *title)
 {
    pepper_efl_shell_surface_t *shsurf = wl_resource_get_user_data(resource);
    DBG("client %p", client);
@@ -114,7 +114,7 @@ xdg_surface_set_title(struct wl_client *client, struct wl_resource *resource, co
 }
 
 static void
-xdg_surface_set_app_id(struct wl_client *client, struct wl_resource *resource, const char *app_id)
+xdg_surface_cb_set_app_id(struct wl_client *client, struct wl_resource *resource, const char *app_id)
 {
    pepper_efl_shell_surface_t *shsurf = wl_resource_get_user_data(resource);
    DBG("client %p", client);
@@ -125,25 +125,25 @@ xdg_surface_set_app_id(struct wl_client *client, struct wl_resource *resource, c
 }
 
 static void
-xdg_surface_show_window_menu(struct wl_client *client, struct wl_resource *surface_resource, struct wl_resource *seat_resource, uint32_t serial, int32_t x, int32_t y)
+xdg_surface_cb_show_window_menu(struct wl_client *client, struct wl_resource *surface_resource, struct wl_resource *seat_resource, uint32_t serial, int32_t x, int32_t y)
 {
    DBG("client %p", client);
 }
 
 static void
-xdg_surface_move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource, uint32_t serial)
+xdg_surface_cb_move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource, uint32_t serial)
 {
    DBG("client %p", client);
 }
 
 static void
-xdg_surface_resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource, uint32_t serial, uint32_t edges)
+xdg_surface_cb_resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource, uint32_t serial, uint32_t edges)
 {
    DBG("client %p", client);
 }
 
 static void
-xdg_surface_ack_configure(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
+xdg_surface_cb_ack_configure(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
 {
    pepper_efl_shell_surface_t *shsurf = wl_resource_get_user_data(resource);
 
@@ -153,69 +153,69 @@ xdg_surface_ack_configure(struct wl_client *client, struct wl_resource *resource
    if (shsurf->configure_done.func)
      {
         shsurf->configure_done.func(shsurf->configure_done.data,
-                                 shsurf->configure_done.width,
-                                 shsurf->configure_done.height);
+                                    shsurf->configure_done.width,
+                                    shsurf->configure_done.height);
         shsurf->configure_done.func = NULL;
         shsurf->configure_done.data = NULL;
      }
 }
 
 static void
-xdg_surface_set_window_geometry(struct wl_client *client, struct wl_resource *resource, int32_t x, int32_t y, int32_t width, int32_t height)
+xdg_surface_cb_set_window_geometry(struct wl_client *client, struct wl_resource *resource, int32_t x, int32_t y, int32_t width, int32_t height)
 {
    DBG("-");
 }
 
 static void
-xdg_surface_set_maximized(struct wl_client *client, struct wl_resource *resource)
+xdg_surface_cb_set_maximized(struct wl_client *client, struct wl_resource *resource)
 {
    DBG("-");
 }
 
 static void
-xdg_surface_unset_maximized(struct wl_client *client, struct wl_resource *resource)
+xdg_surface_cb_unset_maximized(struct wl_client *client, struct wl_resource *resource)
 {
    DBG("-");
 }
 
 static void
-xdg_surface_set_fullscreen(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource)
+xdg_surface_cb_set_fullscreen(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource)
 {
    DBG("-");
 }
 
 static void
-xdg_surface_unset_fullscreen(struct wl_client *client, struct wl_resource *resource)
+xdg_surface_cb_unset_fullscreen(struct wl_client *client, struct wl_resource *resource)
 {
    DBG("-");
 }
 
 static void
-xdg_surface_set_minimized(struct wl_client *client, struct wl_resource *resource)
+xdg_surface_cb_set_minimized(struct wl_client *client, struct wl_resource *resource)
 {
    DBG("-");
 }
 
 static const struct xdg_surface_interface xdg_surface_implementation =
 {
-   xdg_surface_destroy,
-   xdg_surface_set_parent,
-   xdg_surface_set_title,
-   xdg_surface_set_app_id,
-   xdg_surface_show_window_menu,
-   xdg_surface_move,
-   xdg_surface_resize,
-   xdg_surface_ack_configure,
-   xdg_surface_set_window_geometry,
-   xdg_surface_set_maximized,
-   xdg_surface_unset_maximized,
-   xdg_surface_set_fullscreen,
-   xdg_surface_unset_fullscreen,
-   xdg_surface_set_minimized,
+   xdg_surface_cb_destroy,
+   xdg_surface_cb_set_parent,
+   xdg_surface_cb_set_title,
+   xdg_surface_cb_set_app_id,
+   xdg_surface_cb_show_window_menu,
+   xdg_surface_cb_move,
+   xdg_surface_cb_resize,
+   xdg_surface_cb_ack_configure,
+   xdg_surface_cb_set_window_geometry,
+   xdg_surface_cb_set_maximized,
+   xdg_surface_cb_unset_maximized,
+   xdg_surface_cb_set_fullscreen,
+   xdg_surface_cb_unset_fullscreen,
+   xdg_surface_cb_set_minimized,
 };
 
 static void xdg_shell_cb_destroy(struct wl_client *client,
-         struct wl_resource *resource)
+                                 struct wl_resource *resource)
 {
    DBG("-");
 }
@@ -304,11 +304,11 @@ xdg_shell_cb_pong(struct wl_client *client, struct wl_resource *resource, uint32
 }
 
 static const struct xdg_shell_interface xdg_implementation = {
-   xdg_shell_cb_destroy,
-   xdg_shell_cb_use_unstable_version,
-   xdg_shell_cb_surface_get,
-   xdg_shell_cb_popup_get,
-   xdg_shell_cb_pong
+     xdg_shell_cb_destroy,
+     xdg_shell_cb_use_unstable_version,
+     xdg_shell_cb_surface_get,
+     xdg_shell_cb_popup_get,
+     xdg_shell_cb_pong
 };
 
 static void
