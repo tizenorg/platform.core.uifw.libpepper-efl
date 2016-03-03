@@ -3,26 +3,8 @@
 #include <xdg-shell-server-protocol.h>
 
 static void
-handle_resource_destroy(struct wl_resource *resource)
+pepper_efl_shell_surface_destroy(pepper_efl_shell_surface_t *shsurf)
 {
-   pepper_efl_shell_surface_t *shsurf;
-
-   shsurf = wl_resource_get_user_data(resource);
-   PE_CHECK(shsurf);
-
-   shsurf->resource = NULL;
-}
-
-static void
-handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surface, uint32_t id, void *info, void *data)
-{
-   pepper_efl_shell_surface_t *shsurf;
-
-   DBG("Destroy Shell Surface");
-
-   shsurf = data;
-   PE_CHECK(shsurf);
-
    pepper_event_listener_remove(shsurf->surface_destroy_listener);
 
    if (shsurf->resource)
@@ -39,6 +21,32 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
                                NULL, NULL);
 
    free(shsurf);
+}
+
+static void
+handle_resource_destroy(struct wl_resource *resource)
+{
+   pepper_efl_shell_surface_t *shsurf;
+
+   shsurf = wl_resource_get_user_data(resource);
+   PE_CHECK(shsurf);
+
+   shsurf->resource = NULL;
+
+   pepper_efl_shell_surface_destroy(shsurf);
+}
+
+static void
+handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surface, uint32_t id, void *info, void *data)
+{
+   pepper_efl_shell_surface_t *shsurf;
+
+   DBG("Destroy Shell Surface");
+
+   shsurf = data;
+   PE_CHECK(shsurf);
+
+   pepper_efl_shell_surface_destroy(shsurf);
 }
 
 static void
