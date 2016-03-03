@@ -3,6 +3,25 @@
 #include <xdg-shell-server-protocol.h>
 
 static void
+pepper_efl_shell_surface_destroy(pepper_efl_shell_surface_t *shsurf)
+{
+   pepper_event_listener_remove(shsurf->surface_destroy_listener);
+
+   if (shsurf->title)
+     eina_stringshare_del(shsurf->title);
+
+   if (shsurf->app_id)
+     eina_stringshare_del(shsurf->app_id);
+
+   if (shsurf->surface)
+     pepper_object_set_user_data(shsurf->surface,
+                                 pepper_surface_get_role((pepper_surface_t *)shsurf->surface),
+                                 NULL, NULL);
+
+   free(shsurf);
+}
+
+static void
 handle_resource_destroy(struct wl_resource *resource)
 {
    pepper_efl_shell_surface_t *shsurf;
@@ -10,7 +29,7 @@ handle_resource_destroy(struct wl_resource *resource)
    shsurf = wl_resource_get_user_data(resource);
    PE_CHECK(shsurf);
 
-   shsurf->resource = NULL;
+   pepper_efl_shell_surface_destroy(shsurf);
 }
 
 static void
@@ -23,22 +42,7 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
    shsurf = data;
    PE_CHECK(shsurf);
 
-   pepper_event_listener_remove(shsurf->surface_destroy_listener);
-
-   if (shsurf->resource)
-     wl_resource_destroy(shsurf->resource);
-
-   if (shsurf->title)
-     eina_stringshare_del(shsurf->title);
-
-   if (shsurf->app_id)
-     eina_stringshare_del(shsurf->app_id);
-
-   pepper_object_set_user_data(surface,
-                               pepper_surface_get_role((pepper_surface_t *)surface),
-                               NULL, NULL);
-
-   free(shsurf);
+   shsurf->surface = NULL;
 }
 
 static void
@@ -250,6 +254,7 @@ xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource,
      }
 
    shsurf->comp = shell_client->comp;
+   shsurf->surface = surface;
    shsurf->view = pepper_compositor_add_view(shell_client->comp->pepper.comp);
    if (!shsurf->view)
      {

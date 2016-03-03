@@ -16,6 +16,7 @@ struct pepper_efl_shell_surface
 {
    pepper_efl_comp_t *comp;
 
+   pepper_surface_t *surface;
    pepper_view_t *view;
    /* Listeners */
    pepper_event_listener_t *surface_destroy_listener;
