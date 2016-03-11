@@ -1,8 +1,12 @@
 #include <Elementary.h>
 #include "Pepper_Efl.h"
+#include <time.h>
 
 #define WIDTH 1920
 #define HEIGHT 1080
+
+static unsigned int seedx = 1;
+static unsigned int seedy = 43210;
 
 typedef struct
 {
@@ -18,8 +22,8 @@ _add_object_cb (void *data, Evas_Object *obj, void *event_info)
    evas_object_geometry_get(img, &x, &y, &w, &h);
    fprintf(stderr, "[ECOMP] _add_object_cb %p:%p(%dx%d+%d+%d)\n",obj, img, w, h, x, y);
 
-   x = rand()%(WIDTH-w);
-   y = rand()%(HEIGHT-h);
+   x = rand_r(&seedx)%(WIDTH-w);
+   y = rand_r(&seedy)%(HEIGHT-h);
    evas_object_move(img, x, y);
    evas_object_show(img);
 }

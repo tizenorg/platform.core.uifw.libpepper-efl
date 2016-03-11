@@ -215,17 +215,17 @@ client_launch(app_data *d)
      {
         if (!d->app_num)
           {
-             sprintf(path, "%s/touch_sample", SAMPLE_PATH);
+             snprintf(path, 64, "%s/touch_sample", SAMPLE_PATH);
              execl(path, "touch_sample", NULL);
           }
         else if (d->app_num == 1)
           {
-             sprintf(path, "%s/thread_sample", SAMPLE_PATH);
+             snprintf(path, 64, "%s/thread_sample", SAMPLE_PATH);
              execl(path, "thread_sample", NULL);
           }
         else if (d->app_num == 3)
           {
-             sprintf(path, "%s/entry_sample", SAMPLE_PATH);
+             snprintf(path, 64, "%s/entry_sample", SAMPLE_PATH);
              execl(path, "entry_sample", NULL);
           }
      }
@@ -550,7 +550,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    elm_box_pack_end(sc_bx, d->tb2);
 
    /* border object (pre-drawing box) */
-   sprintf(border_path, "%s/red.png", DATA_PATH);
+   snprintf(border_path, 64, "%s/red.png", DATA_PATH);
 
    d->border_obj = evas_object_image_filled_add(evas_object_evas_get(d->win));
    evas_object_image_file_set(d->border_obj, border_path, NULL);

@@ -226,6 +226,8 @@ create_output:
         if (first_init)
           goto err_output;
 
+        pthread_mutex_unlock(&_comp_hash_lock);
+
         return NULL;
      }
 
