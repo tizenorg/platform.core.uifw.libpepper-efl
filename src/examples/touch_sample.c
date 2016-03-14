@@ -13,6 +13,7 @@ win_add(int w, int h)
    Evas_Object *win, *bg;
 
    win = elm_win_add(NULL, "widget", ELM_WIN_BASIC);
+   elm_win_borderless_set(win, EINA_TRUE);
    elm_win_autodel_set(win, EINA_TRUE);
 
    bg = elm_bg_add(win);

@@ -369,6 +369,7 @@ elm_win_create(const char *name, int w, int h)
    elm_win_autodel_set(win, EINA_TRUE);
 
    bg = elm_bg_add(win);
+   elm_win_borderless_set(win, EINA_TRUE);
    evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, bg);
    evas_object_show(bg);
@@ -565,7 +566,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    evas_object_size_hint_align_set(d->border_obj2, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
    /* pepper_efl init */
-   comp_name = pepper_efl_compositor_create(win, NULL);
+   comp_name = pepper_efl_compositor_create(win, "pepper-efl");
    if (!comp_name)
      return ret;
 

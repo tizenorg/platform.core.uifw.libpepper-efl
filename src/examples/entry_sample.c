@@ -9,6 +9,7 @@ elm_main(int argc, char *argv[])
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
    win = elm_win_util_standard_add("entry-sample", "Entry Sample");
+   elm_win_borderless_set(win, EINA_TRUE);
    elm_win_autodel_set(win, EINA_TRUE);
 
    bx = elm_box_add(win);
