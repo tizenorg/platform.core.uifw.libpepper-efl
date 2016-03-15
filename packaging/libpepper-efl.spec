@@ -6,6 +6,7 @@ License:    MIT
 Group:      Graphics & UI Framework/Wayland Window System
 
 Source:     %{name}-%{version}.tar.xz
+Source1001: %{name}.manifest
 
 BuildRequires: pkgconfig(wayland-server)
 BuildRequires: pkgconfig(pepper)
@@ -22,6 +23,7 @@ Pepper is a lightweight and flexible library for developing various types of way
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
                       
 %build
 %autogen --enable-examples
@@ -30,7 +32,8 @@ make %{?_smp_mflags}
 %install
 %make_install
 
-%files -n %{name}        
+%files -n %{name}
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %dir %{_includedir}/pepper-efl/                                                      
 %{_includedir}/pepper-efl/*.h 
