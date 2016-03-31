@@ -14,7 +14,7 @@ pepper_efl_shell_surface_destroy(pepper_efl_shell_surface_t *shsurf)
      eina_stringshare_del(shsurf->app_id);
 
    if (shsurf->surface)
-     pepper_object_set_user_data(shsurf->surface,
+     pepper_object_set_user_data((pepper_object_t *)shsurf->surface,
                                  pepper_surface_get_role((pepper_surface_t *)shsurf->surface),
                                  NULL, NULL);
 
