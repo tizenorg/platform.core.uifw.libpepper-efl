@@ -94,6 +94,11 @@ main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    evas_object_show(button);
 
    thread = ecore_thread_feedback_run(thread_run_cb, thread_feedback_cb, NULL, NULL, button, EINA_FALSE);
+   if (!thread)
+     {
+        fprintf(stderr, "failed to launch a thread\n");
+        return -1;
+     }
 
    elm_run();
    elm_shutdown();
