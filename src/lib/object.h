@@ -20,8 +20,6 @@ struct pepper_efl_object
    struct wl_shm_buffer *shm_buffer;
    int x, y, w, h;
 
-   Eina_Bool buffer_destroyed;
-
    struct
    {
       pepper_pointer_t *ptr;

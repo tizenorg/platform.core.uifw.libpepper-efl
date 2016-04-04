@@ -28,6 +28,20 @@ _pepper_efl_object_buffer_release(Evas_Object *obj)
 }
 
 static void
+_pepper_efl_object_del(pepper_efl_object_t *po)
+{
+   _pepper_efl_object_buffer_release(po->smart_obj);
+
+   PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
+   evas_object_del(po->img);
+
+   if (po->es)
+     po->es->obj = NULL;
+
+   free(po);
+}
+
+static void
 _pepper_efl_smart_add(Evas_Object *obj)
 {
    pepper_efl_object_t *po;
@@ -52,15 +66,7 @@ _pepper_efl_smart_del(Evas_Object *obj)
 
    DBG("[OBJECT] Del: obj %p", obj);
 
-   _pepper_efl_object_buffer_release(obj);
-
-   PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
-   evas_object_del(po->img);
-
-   if (po->es)
-     po->es->obj = NULL;
-
-   free(po);
+   _pepper_efl_object_del(po);
 }
 
 static void
@@ -390,16 +396,7 @@ _pepper_efl_object_cb_buffer_destroy(pepper_event_listener_t *listener EINA_UNUS
 
    DBG("[OBJECT] Buffer destroy: obj %p", po->smart_obj);
 
-   _pepper_efl_object_buffer_release(po->smart_obj);
-
-   shm_data = wl_shm_buffer_get_data(po->shm_buffer);
-   evas_object_image_data_copy_set(po->img, shm_data);
-
-   shm_data = evas_object_image_data_get(po->img, EINA_TRUE);
-   evas_object_image_data_set(po->img, shm_data);
-   evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
-
-   po->buffer_destroyed = EINA_TRUE;
+   _pepper_efl_object_del(po);
 }
 
 static void
@@ -542,9 +539,6 @@ pepper_efl_object_render(Evas_Object *obj)
    OBJ_DATA_GET;
 
    DBG("[OBJECT] Render: obj %p", obj);
-
-   if (po->buffer_destroyed)
-     return;
 
    // FIXME: just mark dirty here, and set the data in pixels_get callback.
    evas_object_image_size_set(po->img, po->w, po->h);
