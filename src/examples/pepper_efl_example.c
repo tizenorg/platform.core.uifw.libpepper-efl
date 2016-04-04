@@ -35,6 +35,8 @@ struct
 /* TODO this variable is declared for internal test. it should be deleted. */
 int now;
 
+static char *_comp_name = "pepper-efl-example";
+
 static int
 diff(int a, int b)
 {
@@ -565,7 +567,7 @@ elm_main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    evas_object_size_hint_align_set(d->border_obj2, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
    /* pepper_efl init */
-   comp_name = pepper_efl_compositor_create(win, NULL);
+   comp_name = pepper_efl_compositor_create(win, _comp_name);
    if (!comp_name)
      return ret;
 
