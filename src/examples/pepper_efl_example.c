@@ -32,9 +32,6 @@ struct
      .up_col = 0
 };
 
-/* TODO this variable is declared for internal test. it should be deleted. */
-int now;
-
 static char *_comp_name = "pepper-efl-example";
 
 static int
@@ -148,6 +145,7 @@ _del_object_cb(void *d, Evas_Object *obj, void *event_info)
 static void
 color_change_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
+   static int now = 0;
    int num = now % 5;
    Evas_Object *rect = data;
    Evas_Event_Mouse_Up *ev = event_info;
