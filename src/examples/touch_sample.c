@@ -30,7 +30,7 @@ win_add(int w, int h)
 }
 
 static void
-bt_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+_bt_clicked(void *data, Evas_Object *obj, void *event_info)
 {
    int num = now%5;
    Evas_Object *rect = data;
@@ -78,7 +78,7 @@ main(int argc EINA_UNUSED, char *argv[] EINA_UNUSED)
    evas_object_size_hint_align_set(button, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_object_text_set(button, "CHANGE");
    elm_box_pack_end(bx, button);
-   evas_object_event_callback_add(button, EVAS_CALLBACK_MOUSE_UP, bt_cb, rect);
+   evas_object_smart_callback_add(button, "clicked", _bt_clicked, rect);
    evas_object_show(button);
 
    elm_run();

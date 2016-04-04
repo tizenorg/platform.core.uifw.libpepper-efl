@@ -11,6 +11,10 @@
 
 static Evas_Smart *_pepper_efl_smart = NULL;
 
+static pepper_efl_object_t *_mouse_in_po = NULL;
+static Eina_Bool _need_send_motion = EINA_TRUE;
+static Eina_Bool _need_send_released = EINA_FALSE;
+
 static void
 _pepper_efl_object_buffer_release(Evas_Object *obj)
 {
@@ -206,6 +210,7 @@ static void
 _touch_down(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, int y)
 {
    pepper_efl_shell_surface_t *shsurf;
+   pepper_view_t *focused_view;
    int rel_x, rel_y;
 
    rel_x = x - po->x;
@@ -262,25 +267,41 @@ _touch_move(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, 
    if (!shsurf)
      return;
 
+   if ((!_need_send_motion) && (!_need_send_released))
+     return;
+
    pepper_touch_send_motion(po->input.touch, shsurf->view, timestamp, device, rel_x, rel_y);
 }
 
 static void
 _pepper_efl_object_evas_cb_mouse_in(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
+   pepper_efl_object_t *po = data;
+
+   if (EINA_UNLIKELY(!po))
+     return;
+
    DBG("Mouse In");
-   // Nothing to do for now.
 
    fprintf(stderr, "[touch] in\n");
+
+   _mouse_in_po = po;
 }
 
 static void
 _pepper_efl_object_evas_cb_mouse_out(void *data EINA_UNUSED, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
+   pepper_efl_object_t *po = data;
+
+   if (EINA_UNLIKELY(!po))
+     return;
+
    DBG("Mouse Out");
-   // Nothing to do for now.
 
    fprintf(stderr, "[touch] out\n");
+
+   if (_mouse_in_po == po)
+     _mouse_in_po = NULL;
 }
 
 static void
@@ -290,6 +311,10 @@ _pepper_efl_object_evas_cb_mouse_move(void *data, Evas *evas EINA_UNUSED, Evas_O
    Evas_Event_Mouse_Move *ev = event;
 
    fprintf(stderr, "[touch] move id:%d %dx%d\n", 0, ev->cur.canvas.x, ev->cur.canvas.y);
+
+   if ((!_need_send_motion) && (!_need_send_released))
+     return;
+
    _touch_move(po, ev->timestamp, 0, ev->cur.canvas.x, ev->cur.canvas.y);
 }
 
@@ -298,6 +323,8 @@ _pepper_efl_object_evas_cb_mouse_down(void *data, Evas *evas EINA_UNUSED, Evas_O
 {
    pepper_efl_object_t *po = data;
    Evas_Event_Mouse_Down *ev = event;
+
+   _need_send_released = EINA_TRUE;
 
    fprintf(stderr, "[touch] down id:%d %dx%d\n", 0, ev->canvas.x, ev->canvas.y);
    _touch_down(po, ev->timestamp, 0, ev->canvas.x, ev->canvas.y);
@@ -310,6 +337,12 @@ _pepper_efl_object_evas_cb_mouse_up(void *data, Evas *evas EINA_UNUSED, Evas_Obj
    Evas_Event_Mouse_Up *ev = event;
 
    fprintf(stderr, "[touch] up id:%d %dx%d\n", 0, ev->canvas.x, ev->canvas.y);
+
+   if (!_need_send_released)
+     _need_send_motion = EINA_TRUE;
+
+   _need_send_released = EINA_FALSE;
+
    _touch_up(po, ev->timestamp, 0);
 }
 
@@ -680,3 +713,33 @@ pepper_efl_object_app_id_get(Evas_Object *obj)
    return app_id;
 }
 
+Eina_Bool
+pepper_efl_object_touch_cancel(Evas_Object *obj)
+{
+   OBJ_DATA_GET EINA_FALSE;
+
+   pepper_efl_shell_surface_t *shsurf;
+
+   DBG("Touch Cancel: obj %p", po->smart_obj);
+
+   if (po != _mouse_in_po)
+     return EINA_FALSE;
+
+   if (!po->surface)
+     return EINA_FALSE;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return EINA_FALSE;
+
+   if ((_mouse_in_po) && (_need_send_released))
+     {
+        pepper_touch_send_cancel(po->input.touch, shsurf->view);
+        pepper_touch_remove_point(po->input.touch, 0);
+        _need_send_released = EINA_FALSE;
+        _need_send_motion = EINA_FALSE;
+     }
+
+   return EINA_TRUE;
+}

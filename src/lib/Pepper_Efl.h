@@ -62,4 +62,6 @@ const char *pepper_efl_object_title_get(Evas_Object *obj);
  */
 const char *pepper_efl_object_app_id_get(Evas_Object *obj);
 
+Eina_Bool   pepper_efl_object_touch_cancel(Evas_Object *obj);
+
 #endif
