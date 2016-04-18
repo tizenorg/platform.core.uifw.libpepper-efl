@@ -392,7 +392,6 @@ static void
 _pepper_efl_object_cb_buffer_destroy(pepper_event_listener_t *listener EINA_UNUSED, pepper_object_t *object EINA_UNUSED, uint32_t id EINA_UNUSED, void *info EINA_UNUSED, void *data)
 {
    pepper_efl_object_t *po = data;
-   void *shm_data;
 
    DBG("[OBJECT] Buffer destroy: obj %p", po->smart_obj);
 
@@ -406,6 +405,7 @@ _pepper_efl_object_cb_surface_destroy(pepper_event_listener_t *listener EINA_UNU
 
    po->es = NULL;
    po->surface = NULL;
+   po->tbm_surface = NULL;
    PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
 }
 
@@ -464,8 +464,9 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
 {
    pepper_efl_object_t *po;
    pepper_buffer_t *buffer;
-   struct wl_shm_buffer *shm_buffer;
+   struct wl_shm_buffer *shm_buffer = NULL;
    struct wl_resource *buf_res;
+   tbm_surface_h tbm_surface = NULL;
    int bw, bh;
 
    po = evas_object_smart_data_get(obj);
@@ -496,23 +497,39 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
                                        _pepper_efl_object_cb_buffer_destroy, po);
 
    buf_res = pepper_buffer_get_resource(buffer);
-   shm_buffer = wl_shm_buffer_get(buf_res);
-   if (!shm_buffer)
-     {
-        ERR("[OBJECT] Failed to get shm_buffer");
-        return EINA_FALSE;
+
+   if ((shm_buffer = wl_shm_buffer_get(buf_res)))
+      {
+        po->shm_buffer = shm_buffer;
+
+        bw = wl_shm_buffer_get_width(shm_buffer);
+        bh = wl_shm_buffer_get_height(shm_buffer);
+
+        if ((po->w != bw) || (po->h != bh))
+          {
+             po->w = bw;
+             po->h = bh;
+             evas_object_resize(obj, bw, bh);
+          }
      }
-
-   po->shm_buffer = shm_buffer;
-
-   bw = wl_shm_buffer_get_width(shm_buffer);
-   bh = wl_shm_buffer_get_height(shm_buffer);
-
-   if ((po->w != bw) || (po->h != bh))
+   else if ((tbm_surface = wayland_tbm_server_get_surface(NULL, buf_res)))
      {
-        po->w = bw;
-        po->h = bh;
-        evas_object_resize(obj, bw, bh);
+       po->tbm_surface = tbm_surface;
+
+       bw = tbm_surface_get_width(tbm_surface);
+       bh = tbm_surface_get_height(tbm_surface);
+
+        if ((po->w != bw) || (po->h != bh))
+          {
+             po->w = bw;
+             po->h = bh;
+             evas_object_resize(obj, bw, bh);
+          }
+     }
+   else
+     {
+        ERR("[OBJECT] Failed to get buffer");
+        return EINA_FALSE;
      }
 
    // first attach
@@ -541,9 +558,24 @@ pepper_efl_object_render(Evas_Object *obj)
    DBG("[OBJECT] Render: obj %p", obj);
 
    // FIXME: just mark dirty here, and set the data in pixels_get callback.
-   evas_object_image_size_set(po->img, po->w, po->h);
-   evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
-   evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
+   if (po->shm_buffer)
+     {
+        evas_object_image_size_set(po->img, po->w, po->h);
+        evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
+        evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
+     }
+   else if(po->tbm_surface)
+     {
+        Evas_Native_Surface ns;
+
+        ns.version = EVAS_NATIVE_SURFACE_VERSION;
+        ns.type = EVAS_NATIVE_SURFACE_TBM;
+        ns.data.tbm.buffer = po->tbm_surface;
+
+        evas_object_image_size_set(po->img, po->w, po->h);
+        evas_object_image_native_surface_set(po->img, &ns);
+        evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
+     }
 }
 
 pid_t

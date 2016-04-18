@@ -16,6 +16,7 @@ AC_PROG_LIBTOOL
 PKG_CHECK_MODULES([PEPPER], [pepper xkbcommon])
 PKG_CHECK_MODULES([WAYLAND], [wayland-server xdg-shell-server tizen-extension-client])
 PKG_CHECK_MODULES([EFL], [eina ecore ecore-input evas ecore-wayland])
+PKG_CHECK_MODULES([WAYLAND_TBM], [wayland-tbm-server])
 
 
 AC_ARG_ENABLE([examples],

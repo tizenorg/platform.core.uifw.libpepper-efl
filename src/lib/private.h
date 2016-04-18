@@ -6,6 +6,7 @@
 
 #include <pepper.h>
 #include <wayland-server.h>
+#include <wayland-tbm-server.h>
 
 typedef struct pepper_efl_comp pepper_efl_comp_t;
 typedef struct pepper_efl_output pepper_efl_output_t;
@@ -38,6 +39,8 @@ struct pepper_efl_comp
       struct wl_display *disp;
       struct wl_event_loop *loop;
    } wl;
+
+   struct wayland_tbm_server *tbm_server;
 };
 
 #define DEBUG

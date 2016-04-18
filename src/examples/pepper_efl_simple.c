@@ -2,8 +2,8 @@
 #include "Pepper_Efl.h"
 #include <time.h>
 
-#define WIDTH 1920
-#define HEIGHT 1080
+#define WIDTH 720
+#define HEIGHT 1280
 
 static unsigned int seedx = 1;
 static unsigned int seedy = 43210;

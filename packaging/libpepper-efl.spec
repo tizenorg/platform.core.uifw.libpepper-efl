@@ -15,6 +15,8 @@ BuildRequires: pkgconfig(xdg-shell-server)
 BuildRequires: pkgconfig(xkbcommon)
 BuildRequires: pkgconfig(tizen-extension-client)
 BuildRequires: pkgconfig(ecore-wayland)
+BuildRequires: pkgconfig(wayland-tbm-server)
+BuildRequires: pkgconfig(wayland-tbm-client)
 Requires: libwayland-extension-server
 
 %description
@@ -24,7 +26,7 @@ Pepper is a lightweight and flexible library for developing various types of way
 %prep
 %setup -q
 cp %{SOURCE1001} .
-                      
+
 %build
 %autogen --enable-examples
 make %{?_smp_mflags}
@@ -35,8 +37,8 @@ make %{?_smp_mflags}
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%dir %{_includedir}/pepper-efl/                                                      
-%{_includedir}/pepper-efl/*.h 
+%dir %{_includedir}/pepper-efl/
+%{_includedir}/pepper-efl/*.h
 %{_libdir}/libpepper-efl.so.*
 %{_libdir}/libpepper-efl.so
 %{_libdir}/pkgconfig/libpepper-efl.pc
