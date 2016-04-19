@@ -18,7 +18,6 @@ struct pepper_efl_object
    pepper_event_listener_t *surface_destroy_listener;
 
    struct wl_shm_buffer *shm_buffer;
-   tbm_surface_h tbm_surface;
    int x, y, w, h;
 
    struct

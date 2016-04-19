@@ -405,7 +405,6 @@ _pepper_efl_object_cb_surface_destroy(pepper_event_listener_t *listener EINA_UNU
 
    po->es = NULL;
    po->surface = NULL;
-   po->tbm_surface = NULL;
    PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
 }
 
@@ -514,8 +513,6 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
      }
    else if ((tbm_surface = wayland_tbm_server_get_surface(NULL, buf_res)))
      {
-       po->tbm_surface = tbm_surface;
-
        bw = tbm_surface_get_width(tbm_surface);
        bh = tbm_surface_get_height(tbm_surface);
 
@@ -564,13 +561,13 @@ pepper_efl_object_render(Evas_Object *obj)
         evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
         evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
      }
-   else if(po->tbm_surface)
+   else
      {
         Evas_Native_Surface ns;
 
         ns.version = EVAS_NATIVE_SURFACE_VERSION;
-        ns.type = EVAS_NATIVE_SURFACE_TBM;
-        ns.data.tbm.buffer = po->tbm_surface;
+        ns.type = EVAS_NATIVE_SURFACE_WL;
+        ns.data.wl.legacy_buffer = pepper_buffer_get_resource(po->buffer);
 
         evas_object_image_size_set(po->img, po->w, po->h);
         evas_object_image_native_surface_set(po->img, &ns);
