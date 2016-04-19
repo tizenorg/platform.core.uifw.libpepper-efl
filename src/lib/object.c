@@ -564,6 +564,20 @@ pepper_efl_object_render(Evas_Object *obj)
         evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
         evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
      }
+#if 1
+   else
+     {
+        Evas_Native_Surface ns;
+
+        ns.version = EVAS_NATIVE_SURFACE_VERSION;
+        ns.type = EVAS_NATIVE_SURFACE_WL;
+        ns.data.wl.legacy_buffer = pepper_buffer_get_resource(po->buffer);
+
+        evas_object_image_size_set(po->img, po->w, po->h);
+        evas_object_image_native_surface_set(po->img, &ns);
+        evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
+     }
+#else
    else if(po->tbm_surface)
      {
         Evas_Native_Surface ns;
@@ -576,6 +590,11 @@ pepper_efl_object_render(Evas_Object *obj)
         evas_object_image_native_surface_set(po->img, &ns);
         evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
      }
+   else
+     {
+        ERR("[OBJECT] Failed to render object");
+     }
+#endif
 }
 
 pid_t
