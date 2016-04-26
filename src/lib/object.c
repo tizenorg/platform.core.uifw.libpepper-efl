@@ -33,6 +33,8 @@ _pepper_efl_object_del(pepper_efl_object_t *po)
    _pepper_efl_object_buffer_release(po->smart_obj);
 
    PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
+
+   evas_object_del(po->clip);
    evas_object_del(po->img);
 
    if (po->es)
@@ -44,19 +46,11 @@ _pepper_efl_object_del(pepper_efl_object_t *po)
 static void
 _pepper_efl_smart_add(Evas_Object *obj)
 {
-   pepper_efl_object_t *po;
+   EVAS_SMART_DATA_ALLOC(obj, pepper_efl_object_t);
 
-   DBG("[OBJECT] Add: obj %p", obj);
+   priv->smart_obj = obj;
 
-   po = calloc(1, sizeof(*po));
-   if (!po)
-     {
-        ERR("Out of memory");
-        return;
-     }
-
-   po->smart_obj = obj;
-   evas_object_smart_data_set(obj, po);
+   priv->evas = evas_object_evas_get(obj);
 }
 
 static void
@@ -133,6 +127,7 @@ _pepper_efl_smart_show(Evas_Object *obj)
    DBG("[OBJECT] Show: obj %p", obj);
 
    evas_object_show(po->img);
+   evas_object_show(po->clip);
 }
 
 static void
@@ -143,6 +138,37 @@ _pepper_efl_smart_hide(Evas_Object *obj)
    DBG("[OBJECT] Hide: obj %p", obj);
 
    evas_object_hide(po->img);
+   evas_object_hide(po->clip);
+}
+
+static void
+_pepper_efl_smart_color_set(Evas_Object *obj, int a, int r, int g, int b)
+{
+   OBJ_DATA_GET;
+
+   DBG("[OBJECT] Color Set: obj %p", obj);
+
+   evas_object_color_set(po->clip, a, r, g, b);
+}
+
+static void
+_pepper_efl_smart_clip_set(Evas_Object *obj, Evas_Object *clip)
+{
+   OBJ_DATA_GET;
+
+   DBG("[OBJECT] Clip Set: obj %p", obj);
+
+   evas_object_clip_set(po->clip, clip);
+}
+
+static void
+_pepper_efl_smart_clip_unset(Evas_Object *obj)
+{
+   OBJ_DATA_GET;
+
+   DBG("[OBJECT] Clip Unset: obj %p", obj);
+
+   evas_object_clip_unset(po->clip);
 }
 
 static void
@@ -162,9 +188,9 @@ _pepper_efl_smart_init(void)
          _pepper_efl_smart_resize,
          _pepper_efl_smart_show,
          _pepper_efl_smart_hide,
-         NULL, // color_set
-         NULL, // clip_set
-         NULL, // clip_unset
+         _pepper_efl_smart_color_set, // color_set
+         _pepper_efl_smart_clip_set, // clip_set
+         _pepper_efl_smart_clip_unset, // clip_unset
          NULL,
          NULL,
          NULL,
@@ -408,6 +434,21 @@ _pepper_efl_object_cb_surface_destroy(pepper_event_listener_t *listener EINA_UNU
    PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
 }
 
+static void
+_pepper_efl_object_setup(pepper_efl_object_t *po)
+{
+   po->img = evas_object_image_filled_add(po->evas);
+   evas_object_image_colorspace_set(po->img, EVAS_COLORSPACE_ARGB8888);
+   evas_object_image_alpha_set(po->img, EINA_TRUE);
+   evas_object_resize(po->img, po->w, po->h);
+   evas_object_smart_member_add(po->img, po->smart_obj);
+
+   po->clip = evas_object_rectangle_add(po->evas);
+   evas_object_smart_member_add(po->clip, po->smart_obj);
+   evas_object_resize(po->clip, 999999, 999999);
+   evas_object_clip_set(po->img, po->clip);
+}
+
 Evas_Object *
 pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surface_t *surface)
 {
@@ -532,12 +573,7 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
    // first attach
    if (!po->img)
      {
-        po->img = evas_object_image_filled_add(po->evas);
-        evas_object_image_colorspace_set(po->img, EVAS_COLORSPACE_ARGB8888);
-        evas_object_image_alpha_set(po->img, EINA_TRUE);
-        evas_object_resize(po->img, po->w, po->h);
-
-        evas_object_smart_member_add(po->img, obj);
+        _pepper_efl_object_setup(po);
         evas_object_smart_callback_call(po->parent, PEPPER_EFL_OBJ_ADD, (void *)obj);
      }
 

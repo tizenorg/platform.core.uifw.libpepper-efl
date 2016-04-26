@@ -9,6 +9,7 @@ struct pepper_efl_object
    Evas_Object *parent;
    Evas_Object *smart_obj;
    Evas_Object *img;
+   Evas_Object *clip;
 
    pepper_efl_surface_t *es;
 
