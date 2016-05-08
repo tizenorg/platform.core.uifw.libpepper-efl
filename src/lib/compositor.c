@@ -87,11 +87,61 @@ _pepper_efl_compositor_get_socket_fd_from_server(pepper_efl_comp_t *comp)
    return fd;
 }
 
+static void
+_pepper_efl_compositor_win_cb_del(void *data, Evas *e, Evas_Object *obj, void *event_info)
+{
+   pepper_efl_comp_t *comp;
+   pepper_efl_output_t *output;
+
+   comp = data;
+   if (EINA_UNLIKELY(!comp))
+     return;
+
+   output = eina_hash_find(comp->output_hash, &obj);
+   if (EINA_UNLIKELY(!output))
+     return;
+
+   pepper_efl_output_destroy(output);
+   eina_hash_del(comp->output_hash, &obj, output);
+}
+
+static Eina_Bool
+_pepper_efl_compositor_output_add(pepper_efl_comp_t *comp, Evas_Object *win)
+{
+   pepper_efl_output_t *output;
+
+   output = eina_hash_find(comp->output_hash, &win);
+   if (output)
+     {
+        ERR("Already compositing given window.");
+        return EINA_TRUE;
+     }
+
+   output = pepper_efl_output_create(comp, win);
+   if (!output)
+     return EINA_FALSE;
+
+   evas_object_event_callback_add(win, EVAS_CALLBACK_DEL, _pepper_efl_compositor_win_cb_del, comp);
+   eina_hash_add(comp->output_hash, &win, output);
+}
+
+static void
+_pepper_efl_compositor_output_all_del(pepper_efl_comp_t *comp)
+{
+   pepper_efl_output_t *output;
+   Eina_Iterator *itr;
+
+   itr = eina_hash_iterator_data_new(comp->output_hash);
+   EINA_ITERATOR_FOREACH(itr, output)
+      pepper_efl_output_destroy(output);
+   eina_iterator_free(itr);
+   PE_FREE_FUNC(comp->output_hash, eina_hash_free);
+}
+
 Eina_Bool
 pepper_efl_compositor_destroy(const char *name)
 {
    pepper_efl_comp_t *comp;
-   pepper_efl_output_t *output;
 
    if (!name)
      return EINA_FALSE;
@@ -105,8 +155,7 @@ pepper_efl_compositor_destroy(const char *name)
         return EINA_FALSE;
      }
 
-   EINA_LIST_FREE(comp->output_list, output)
-      pepper_efl_output_destroy(output);
+   _pepper_efl_compositor_output_all_del(comp);
 
    pepper_efl_shell_shutdown();
 
@@ -137,6 +186,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
    int loop_fd;
    int socket_fd = -1;
    const char *sock_name;
+   Eina_Bool res = EINA_FALSE;
 
    pthread_mutex_lock(&_comp_hash_lock);
 
@@ -173,6 +223,8 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         ERR("oom, alloc comp");
         goto err_alloc;
      }
+
+   comp->output_hash = eina_hash_pointer_new(NULL);
 
    DBG("Get socket_fd from server");
    socket_fd = _pepper_efl_compositor_get_socket_fd_from_server(comp);
@@ -225,10 +277,10 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
                                               comp);
 
 create_output:
-   output = pepper_efl_output_create(comp, win);
-   if (!output)
+   res = _pepper_efl_compositor_output_add(comp, win);
+   if (!res)
      {
-        ERR("failed to create output");
+        ERR("failed to add output");
 
         if (first_init)
           goto err_output;
@@ -237,7 +289,6 @@ create_output:
 
         return NULL;
      }
-   comp->output_list = eina_list_append(comp->output_list, output);
 
    eina_hash_add(_comp_hash, comp->name, comp);
 
@@ -260,6 +311,7 @@ err_shell:
    pepper_compositor_destroy(comp->pepper.comp);
 
 err_comp:
+   eina_hash_free(comp->output_hash);
    free(comp);
 
 err_alloc:

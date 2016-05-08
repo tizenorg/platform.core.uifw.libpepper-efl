@@ -24,7 +24,8 @@ struct pepper_efl_comp
    Eina_Stringshare *name;
    Evas_Object *screen;
    Ecore_Fd_Handler *fd_hdlr;
-   Eina_List *output_list;
+
+   Eina_Hash *output_hash;
 
    pepper_efl_input_t *input;
    pepper_efl_shell_t *shell;
