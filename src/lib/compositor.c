@@ -93,7 +93,6 @@ pepper_efl_compositor_destroy(const char *name)
 {
    pepper_efl_comp_t *comp;
    pepper_efl_output_t *output;
-   Eina_List *l;
 
    if (!name)
      return EINA_FALSE;
@@ -107,8 +106,8 @@ pepper_efl_compositor_destroy(const char *name)
         return EINA_FALSE;
      }
 
-   EINA_LIST_FOREACH(comp->output_list, l, output)
-      pepper_output_destroy(output->base);
+   EINA_LIST_FREE(comp->output_list, output)
+      pepper_efl_output_destroy(output);
 
    pepper_efl_shell_shutdown();
 
@@ -240,6 +239,7 @@ create_output:
 
         return NULL;
      }
+   comp->output_list = eina_list_append(comp->output_list, output);
 
    eina_hash_add(_comp_hash, comp->name, comp);
 
