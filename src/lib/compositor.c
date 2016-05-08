@@ -198,10 +198,10 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
 
    comp->tbm_server = wayland_tbm_server_init(pepper_compositor_get_display(comp->pepper.comp),
                                               NULL, -1, 0);
-   if (!comp->pepper.comp)
+   if (!comp->tbm_server)
      {
         ERR("failed to create wayland_tbm_server");
-        goto err_comp;
+        goto err_tbm;
      }
 
    comp->input = pepper_efl_input_create(comp);
@@ -250,6 +250,10 @@ err_output:
    ecore_main_fd_handler_del(comp->fd_hdlr);
 
 err_input:
+   /* Shutdown the wayland tbm server */
+   /* wayland_tbm_server_shutdown(comp->tbm_server); */
+
+err_tbm:
    pepper_efl_shell_shutdown();
 
 err_shell:
