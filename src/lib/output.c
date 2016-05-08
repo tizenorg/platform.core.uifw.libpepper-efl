@@ -12,7 +12,7 @@ _pepper_efl_output_destroy(void *o)
    DBG("callback output");
 
    PE_FREE_FUNC(output->primary_plane, pepper_plane_destroy);
-   comp->output_list = eina_list_remove(comp->output_list, output);
+   eina_hash_del_by_data(comp->output_hash, output);
    free(output);
 }
 
