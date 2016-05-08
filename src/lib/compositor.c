@@ -262,6 +262,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_input;
      }
 
+   eina_hash_add(_comp_hash, name, comp);
    sock_name = pepper_compositor_get_socket_name(comp->pepper.comp);
    comp->name = eina_stringshare_add(sock_name);
    comp->wl.disp = pepper_compositor_get_display(comp->pepper.comp);
@@ -290,13 +291,12 @@ create_output:
         return NULL;
      }
 
-   eina_hash_add(_comp_hash, comp->name, comp);
-
    pthread_mutex_unlock(&_comp_hash_lock);
 
    return comp->name;
 
 err_output:
+   eina_hash_del(_comp_hash, name, comp);
    eina_stringshare_del(comp->name);
    ecore_main_fd_handler_del(comp->fd_hdlr);
 
@@ -315,13 +315,16 @@ err_comp:
    free(comp);
 
 err_alloc:
-   ecore_shutdown();
+   if (first_init)
+     {
+        ecore_shutdown();
 
 err_ecore_init:
-   pepper_efl_log_shutdown();
+        pepper_efl_log_shutdown();
 
 err_log_init:
-   PE_FREE_FUNC(_comp_hash, eina_hash_free);
+        PE_FREE_FUNC(_comp_hash, eina_hash_free);
+     }
 
    pthread_mutex_unlock(&_comp_hash_lock);
 
