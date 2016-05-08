@@ -13,6 +13,7 @@
 #include <pepper.h>
 #include <wayland-server.h>
 #include <tizen-extension-client-protocol.h>
+#include <wayland-tbm-server.h>
 
 // internal header
 #include "private.h"
@@ -196,12 +197,13 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_shell;
      }
 
+   /* Can we use wayland_tbm_embedded_server_init() instead of it? */
    comp->tbm_server = wayland_tbm_server_init(pepper_compositor_get_display(comp->pepper.comp),
                                               NULL, -1, 0);
-   if (!comp->pepper.comp)
+   if (!comp->tbm_server)
      {
         ERR("failed to create wayland_tbm_server");
-        goto err_comp;
+        goto err_tbm;
      }
 
    comp->input = pepper_efl_input_create(comp);
@@ -250,6 +252,9 @@ err_output:
    ecore_main_fd_handler_del(comp->fd_hdlr);
 
 err_input:
+   wayland_tbm_server_uninit(comp->tbm_server);
+
+err_tbm:
    pepper_efl_shell_shutdown();
 
 err_shell:
