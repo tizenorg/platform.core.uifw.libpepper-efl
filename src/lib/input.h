@@ -5,7 +5,7 @@ typedef struct pepper_efl_input pepper_efl_input_t;
 
 struct pepper_efl_input
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
 
    pepper_seat_t *seat;
    pepper_input_device_t *device;
@@ -21,6 +21,6 @@ struct pepper_efl_input
    } xkb;
 };
 
-pepper_efl_input_t   *pepper_efl_input_create(pepper_efl_comp_t *comp);
+pepper_efl_input_t   *pepper_efl_input_create(Pepper_Efl_Comp *comp);
 void                  pepper_efl_input_destroy(pepper_efl_input_t *seat);
 #endif

@@ -351,7 +351,7 @@ shell_client_destroy_handle(struct wl_resource *resource)
 static void
 xdg_shell_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id)
 {
-   pepper_efl_comp_t *comp = data;
+   Pepper_Efl_Comp *comp = data;
    pepper_efl_shell_client_t *sc;
 
    DBG("Bind Shell - client %p version %d", client, version);
@@ -377,7 +377,7 @@ xdg_shell_bind(struct wl_client *client, void *data, uint32_t version, uint32_t 
 }
 
 Eina_Bool
-pepper_efl_shell_init(pepper_efl_comp_t *comp)
+pepper_efl_shell_init(Pepper_Efl_Comp *comp)
 {
    struct wl_display *wl_disp;
 

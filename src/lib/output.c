@@ -179,7 +179,7 @@ _pepper_efl_output_cb_window_resize(void *data, Evas *e EINA_UNUSED, Evas_Object
 }
 
 pepper_efl_output_t *
-pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
+pepper_efl_output_create(Pepper_Efl_Comp *comp, Evas_Object *win)
 {
    pepper_efl_output_t *output = NULL;
    int w, h;

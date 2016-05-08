@@ -6,7 +6,7 @@ typedef struct pepper_efl_shell_client pepper_efl_shell_client_t;
 typedef struct pepper_efl_shell_surface pepper_efl_shell_surface_t;
 
 struct pepper_efl_shell_client {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
 
    Eina_List *shsurf_list;
 
@@ -16,7 +16,7 @@ struct pepper_efl_shell_client {
 
 struct pepper_efl_shell_surface
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
    pepper_efl_shell_client_t *shell_client;
 
    pepper_surface_t *surface;
@@ -44,7 +44,7 @@ struct pepper_efl_shell_surface
    const char *app_id;
 };
 
-Eina_Bool   pepper_efl_shell_init(pepper_efl_comp_t *comp);
+Eina_Bool   pepper_efl_shell_init(Pepper_Efl_Comp *comp);
 void        pepper_efl_shell_shutdown(void);
 void        pepper_efl_shell_configure(pepper_efl_shell_surface_t *shsurf, int width, int height, void (*configure_done)(void *data, int w, int h), void *data);
 

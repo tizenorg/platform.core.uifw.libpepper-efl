@@ -601,7 +601,7 @@ _tzpol_cb_bind(struct wl_client *client, void *data, uint32_t ver, uint32_t id)
 }
 
 Eina_Bool
-tizen_policy_init(pepper_efl_comp_t *comp)
+tizen_policy_init(Pepper_Efl_Comp *comp)
 {
    struct wl_display *wl_disp;
 

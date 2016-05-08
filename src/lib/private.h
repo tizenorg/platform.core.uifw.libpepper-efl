@@ -11,7 +11,7 @@
 #include <wayland-server.h>
 #include <wayland-tbm-server.h>
 
-typedef struct pepper_efl_comp pepper_efl_comp_t;
+typedef struct _Pepper_Efl_Comp Pepper_Efl_Comp;
 typedef struct pepper_efl_output pepper_efl_output_t;
 
 #include "Pepper_Efl.h"
@@ -21,7 +21,7 @@ typedef struct pepper_efl_output pepper_efl_output_t;
 #include "shell.h"
 #include "object.h"
 
-struct pepper_efl_comp
+struct _Pepper_Efl_Comp
 {
    Eina_Stringshare *name;
    Evas_Object *screen;
@@ -79,7 +79,7 @@ struct pepper_efl_comp
 # define PE_CHECK_RET(x, ret)    EINA_SAFETY_ON_NULL_RETURN_VAL(x, ret)
 #endif
 
-Eina_Bool   tizen_policy_init(pepper_efl_comp_t *comp);
+Eina_Bool   tizen_policy_init(Pepper_Efl_Comp *comp);
 void        tizen_policy_shutdown(void);
 
 #endif

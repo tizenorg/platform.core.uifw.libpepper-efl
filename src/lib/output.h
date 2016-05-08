@@ -5,7 +5,7 @@
 
 struct pepper_efl_output
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
 
    Evas_Object *win;
    Eina_List *update_list;
@@ -24,7 +24,7 @@ struct pepper_efl_output
    pepper_plane_t *primary_plane;
 };
 
-pepper_efl_output_t  *pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win);
+pepper_efl_output_t  *pepper_efl_output_create(Pepper_Efl_Comp *comp, Evas_Object *win);
 void                  pepper_efl_output_destroy(pepper_efl_output_t *output);
 
 #endif

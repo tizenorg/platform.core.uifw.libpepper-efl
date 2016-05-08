@@ -81,7 +81,7 @@ end:
 }
 
 pepper_efl_input_t *
-pepper_efl_input_create(pepper_efl_comp_t *comp)
+pepper_efl_input_create(Pepper_Efl_Comp *comp)
 {
    pepper_efl_input_t *input;
    const char *default_name = "seat0";

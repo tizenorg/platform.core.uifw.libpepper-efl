@@ -22,9 +22,9 @@ static Eina_Hash *_comp_hash = NULL;
 static pthread_mutex_t _comp_hash_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static Eina_Bool
-_pepper_efl_compositor_cb_fd_read(void *data, Ecore_Fd_Handler *hdl EINA_UNUSED)
+_comp_cb_fd_read(void *data, Ecore_Fd_Handler *hdl EINA_UNUSED)
 {
-   pepper_efl_comp_t *comp = data;
+   Pepper_Efl_Comp *comp = data;
 
    wl_event_loop_dispatch(comp->wl.loop, 0);
 
@@ -32,15 +32,15 @@ _pepper_efl_compositor_cb_fd_read(void *data, Ecore_Fd_Handler *hdl EINA_UNUSED)
 }
 
 static void
-_pepper_efl_compositor_cb_fd_prepare(void *data, Ecore_Fd_Handler *hdlr EINA_UNUSED)
+_comp_cb_fd_prepare(void *data, Ecore_Fd_Handler *hdlr EINA_UNUSED)
 {
-   pepper_efl_comp_t *comp = data;
+   Pepper_Efl_Comp *comp = data;
 
    wl_display_flush_clients(comp->wl.disp);
 }
 
 static void
-_pepper_efl_compositor_socket(void *data, struct tizen_embedded_compositor *tec, int fd)
+_comp_tz_cb_socket(void *data, struct tizen_embedded_compositor *tec, int fd)
 {
    int *socket_fd = (int*)data;
 
@@ -48,13 +48,13 @@ _pepper_efl_compositor_socket(void *data, struct tizen_embedded_compositor *tec,
    return;
 }
 
-static const struct tizen_embedded_compositor_listener tizen_embedded_compositor_listener =
+static const struct tizen_embedded_compositor_listener _tz_embedded_comp_listener =
 {
-   _pepper_efl_compositor_socket
+   _comp_tz_cb_socket,
 };
 
 static int
-_pepper_efl_compositor_get_socket_fd_from_server(pepper_efl_comp_t *comp)
+_comp_socket_fd_get_from_server(Pepper_Efl_Comp *comp)
 {
    Eina_Inlist *l, *tmp;
    Ecore_Wl_Global *global;
@@ -63,23 +63,23 @@ _pepper_efl_compositor_get_socket_fd_from_server(pepper_efl_comp_t *comp)
 
    l = ecore_wl_globals_get();
    if (!l)
-      return -1;
+     return -1;
 
    EINA_INLIST_FOREACH_SAFE(l, tmp, global)
      {
         if (!strcmp(global->interface, "tizen_embedded_compositor"))
           {
              tec = wl_registry_bind(ecore_wl_registry_get(),
-                         global->id,
-                         &tizen_embedded_compositor_interface,
-                         1);
-             tizen_embedded_compositor_add_listener(tec, &tizen_embedded_compositor_listener, &fd);
+                                    global->id,
+                                    &tizen_embedded_compositor_interface,
+                                    1);
+             tizen_embedded_compositor_add_listener(tec, &_tz_embedded_comp_listener, &fd);
              break;
           }
      }
 
    if (!tec)
-      return -1;
+     return -1;
 
    tizen_embedded_compositor_get_socket(tec);
    ecore_wl_sync();
@@ -89,7 +89,7 @@ _pepper_efl_compositor_get_socket_fd_from_server(pepper_efl_comp_t *comp)
 }
 
 static void
-_pepper_efl_compositor_output_del(pepper_efl_comp_t *comp, Evas_Object *eo)
+_comp_output_del(Pepper_Efl_Comp *comp, Evas_Object *eo)
 {
    pepper_efl_output_t *output;
 
@@ -102,19 +102,19 @@ _pepper_efl_compositor_output_del(pepper_efl_comp_t *comp, Evas_Object *eo)
 }
 
 static void
-_pepper_efl_compositor_win_cb_del(void *data, Evas *e, Evas_Object *eo, void *event_info)
+_comp_win_cb_del(void *data, Evas *e, Evas_Object *eo, void *event_info)
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
 
    comp = data;
    if (EINA_UNLIKELY(!comp))
      return;
 
-   _pepper_efl_compositor_output_del(comp, eo);
+   _comp_output_del(comp, eo);
 }
 
 static Eina_Bool
-_pepper_efl_compositor_output_add(pepper_efl_comp_t *comp, Evas_Object *eo)
+_comp_output_add(Pepper_Efl_Comp *comp, Evas_Object *eo)
 {
    pepper_efl_output_t *output;
 
@@ -129,14 +129,14 @@ _pepper_efl_compositor_output_add(pepper_efl_comp_t *comp, Evas_Object *eo)
    if (!output)
      return EINA_FALSE;
 
-   evas_object_event_callback_add(eo, EVAS_CALLBACK_DEL, _pepper_efl_compositor_win_cb_del, comp);
+   evas_object_event_callback_add(eo, EVAS_CALLBACK_DEL, _comp_win_cb_del, comp);
    eina_hash_add(comp->output_hash, &eo, output);
 
    return EINA_TRUE;
 }
 
 static void
-_pepper_efl_compositor_output_all_del(pepper_efl_comp_t *comp)
+_comp_output_all_del(Pepper_Efl_Comp *comp)
 {
    pepper_efl_output_t *output;
    Eina_Iterator *itr;
@@ -148,10 +148,100 @@ _pepper_efl_compositor_output_all_del(pepper_efl_comp_t *comp)
    PE_FREE_FUNC(comp->output_hash, eina_hash_free);
 }
 
+static Pepper_Efl_Comp *
+_comp_create(const char *name)
+{
+   Pepper_Efl_Comp *comp;
+   int loop_fd;
+   int socket_fd = -1;
+   const char *sock_name;
+
+   comp = calloc(1, sizeof(*comp));
+   if (!comp)
+     return NULL;
+
+   socket_fd = _comp_socket_fd_get_from_server(comp);
+   if (socket_fd == -1)
+     {
+        ERR("failed to get socket_fd from server");
+        goto err_fd;
+     }
+
+   comp->pepper.comp = pepper_compositor_create_fd(name, socket_fd);
+   if (!comp->pepper.comp)
+     {
+        ERR("failed to create pepper compositor");
+        goto err_pepper;
+     }
+
+   sock_name = pepper_compositor_get_socket_name(comp->pepper.comp);
+   comp->name = eina_stringshare_add(sock_name);
+   comp->wl.disp = pepper_compositor_get_display(comp->pepper.comp);
+   comp->wl.loop = wl_display_get_event_loop(comp->wl.disp);
+   loop_fd = wl_event_loop_get_fd(comp->wl.loop);
+   comp->fd_hdlr = ecore_main_fd_handler_add(loop_fd,
+                                             (ECORE_FD_READ | ECORE_FD_ERROR),
+                                             _comp_cb_fd_read, comp, NULL, NULL);
+   ecore_main_fd_handler_prepare_callback_set(comp->fd_hdlr, _comp_cb_fd_prepare, comp);
+
+   eina_hash_add(_comp_hash, name, comp);
+
+   return comp;
+err_pepper:
+   /* Is it OK not to close fd? */
+   /* close(socket_fd); */
+err_fd:
+   free(comp);
+
+   return NULL;
+}
+
+static void
+_comp_destroy(Pepper_Efl_Comp *comp)
+{
+   eina_stringshare_del(comp->name);
+   pepper_compositor_destroy(comp->pepper.comp);
+   ecore_main_fd_handler_del(comp->fd_hdlr);
+   free(comp);
+}
+
+static Eina_Bool
+_comp_efl_init(void)
+{
+   if (!eina_init())
+     return EINA_FALSE;
+
+   if (!ecore_init())
+     goto err_ecore;
+
+   if (!pepper_efl_log_init("pepper-efl"))
+     goto err_log;
+
+   _comp_hash = eina_hash_string_superfast_new(NULL);
+
+   return EINA_TRUE;
+
+err_log:
+   ecore_shutdown();
+err_ecore:
+   eina_shutdown();
+
+   return EINA_FALSE;
+}
+
+static void
+_comp_efl_shutdown(void)
+{
+   PE_FREE_FUNC(_comp_hash, eina_hash_free);
+   pepper_efl_log_shutdown();
+   ecore_shutdown();
+   eina_shutdown();
+}
+
 Eina_Bool
 pepper_efl_compositor_destroy(const char *name)
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
 
    if (!name)
      return EINA_FALSE;
@@ -165,7 +255,7 @@ pepper_efl_compositor_destroy(const char *name)
         return EINA_FALSE;
      }
 
-   _pepper_efl_compositor_output_all_del(comp);
+   _comp_output_all_del(comp);
 
    pepper_efl_shell_shutdown();
    tizen_policy_shutdown();
@@ -177,11 +267,7 @@ pepper_efl_compositor_destroy(const char *name)
 
    eina_hash_del(_comp_hash, name, NULL);
    if (eina_hash_population(_comp_hash) == 0)
-     {
-        PE_FREE_FUNC(_comp_hash, eina_hash_free);
-        ecore_shutdown();
-        pepper_efl_log_shutdown();
-     }
+     _comp_efl_shutdown();
 
    pthread_mutex_unlock(&_comp_hash_lock);
 
@@ -191,12 +277,9 @@ pepper_efl_compositor_destroy(const char *name)
 const char *
 pepper_efl_compositor_create(Evas_Object *win, const char *name)
 {
-   pepper_efl_comp_t *comp;
+   Pepper_Efl_Comp *comp;
    Eina_Bool first_init = EINA_FALSE;
-   int loop_fd;
-   int socket_fd = -1;
-   const char *sock_name;
-   Eina_Bool res = EINA_FALSE;
+   Eina_Bool res;
 
    pthread_mutex_lock(&_comp_hash_lock);
 
@@ -211,47 +294,20 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
      {
         first_init = EINA_TRUE;
 
-        _comp_hash = eina_hash_string_superfast_new(NULL);
-
-        if (!pepper_efl_log_init("pepper-efl"))
-          {
-             fprintf(stderr, "failed to init log system\n");
-             goto err_log_init;
-          }
-
-        if (!ecore_init())
-          {
-             ERR("failed to init ecore");
-             goto err_ecore_init;
-          }
+        res = _comp_efl_init();
+        if (!res)
+          goto err_efl;
      }
 
-   DBG("create compositor");
-   comp = calloc(1, sizeof(pepper_efl_comp_t));
+   comp = _comp_create(name);
    if (!comp)
      {
-        ERR("oom, alloc comp");
-        goto err_alloc;
-     }
-
-   comp->output_hash = eina_hash_pointer_new(NULL);
-
-   DBG("Get socket_fd from server");
-   socket_fd = _pepper_efl_compositor_get_socket_fd_from_server(comp);
-   if (socket_fd == -1)
-     {
-        ERR("failed to get socket_fd from server");
+        ERR("failed to create compositor");
         goto err_comp;
      }
 
-   comp->pepper.comp = pepper_compositor_create_fd(name, socket_fd);
-   if (!comp->pepper.comp)
-     {
-        ERR("failed to create pepper compositor");
-        goto err_comp;
-     }
-
-   if (!pepper_efl_shell_init(comp))
+   res = pepper_efl_shell_init(comp);
+   if (!res)
      {
         ERR("failed to init shell");
         goto err_shell;
@@ -263,9 +319,7 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_extension;
      }
 
-   /* Can we use wayland_tbm_embedded_server_init() instead of it? */
-   comp->tbm_server = wayland_tbm_server_init(pepper_compositor_get_display(comp->pepper.comp),
-                                              NULL, -1, 0);
+   comp->tbm_server = wayland_tbm_server_init(comp->wl.disp, NULL, -1, 0);
    if (!comp->tbm_server)
      {
         ERR("failed to create wayland_tbm_server");
@@ -279,23 +333,8 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_input;
      }
 
-   eina_hash_add(_comp_hash, name, comp);
-   sock_name = pepper_compositor_get_socket_name(comp->pepper.comp);
-   comp->name = eina_stringshare_add(sock_name);
-   comp->wl.disp = pepper_compositor_get_display(comp->pepper.comp);
-
-   comp->wl.loop = wl_display_get_event_loop(comp->wl.disp);
-   loop_fd = wl_event_loop_get_fd(comp->wl.loop);
-   comp->fd_hdlr =
-      ecore_main_fd_handler_add(loop_fd, (ECORE_FD_READ | ECORE_FD_ERROR),
-                                _pepper_efl_compositor_cb_fd_read, comp,
-                                NULL, NULL);
-   ecore_main_fd_handler_prepare_callback_set(comp->fd_hdlr,
-                                              _pepper_efl_compositor_cb_fd_prepare,
-                                              comp);
-
 create_output:
-   res = _pepper_efl_compositor_output_add(comp, win);
+   res = _comp_output_add(comp, win);
    if (!res)
      {
         ERR("failed to add output");
@@ -313,9 +352,7 @@ create_output:
    return comp->name;
 
 err_output:
-   eina_hash_del(_comp_hash, name, comp);
-   eina_stringshare_del(comp->name);
-   ecore_main_fd_handler_del(comp->fd_hdlr);
+   pepper_efl_input_destroy(comp->input);
 
 err_input:
    wayland_tbm_server_deinit(comp->tbm_server);
@@ -327,24 +364,13 @@ err_extension:
    pepper_efl_shell_shutdown();
 
 err_shell:
-   pepper_compositor_destroy(comp->pepper.comp);
+   _comp_destroy(comp);
 
 err_comp:
-   eina_hash_free(comp->output_hash);
-   free(comp);
-
-err_alloc:
    if (first_init)
-     {
-        ecore_shutdown();
+     _comp_efl_shutdown();
 
-err_ecore_init:
-        pepper_efl_log_shutdown();
-
-err_log_init:
-        PE_FREE_FUNC(_comp_hash, eina_hash_free);
-     }
-
+err_efl:
    pthread_mutex_unlock(&_comp_hash_lock);
 
    return NULL;
