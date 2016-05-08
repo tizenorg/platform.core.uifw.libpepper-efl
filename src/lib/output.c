@@ -238,8 +238,6 @@ pepper_efl_output_create(pepper_efl_comp_t *comp, Evas_Object *win)
                            EVAS_CALLBACK_RENDER_POST,
                            _pepper_efl_output_cb_render_post, output);
 
-   comp->output_list = eina_list_append(comp->output_list, output);
-
    return output;
 
 err_plane:
@@ -250,4 +248,11 @@ err_output:
 
 err:
    return NULL;
+}
+
+void
+pepper_efl_output_destroy(pepper_efl_output_t *output)
+{
+   pepper_output_destroy(output->base);
+   free(output);
 }
