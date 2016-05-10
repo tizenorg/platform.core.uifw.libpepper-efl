@@ -8,6 +8,8 @@ typedef struct pepper_efl_shell_surface pepper_efl_shell_surface_t;
 struct pepper_efl_shell_client {
    pepper_efl_comp_t *comp;
 
+   Eina_List *shsurf_list;
+
    struct wl_resource *resource;
    struct wl_listener destroy_listener;
 };
@@ -15,6 +17,7 @@ struct pepper_efl_shell_client {
 struct pepper_efl_shell_surface
 {
    pepper_efl_comp_t *comp;
+   pepper_efl_shell_client_t *shell_client;
 
    pepper_surface_t *surface;
    pepper_view_t *view;

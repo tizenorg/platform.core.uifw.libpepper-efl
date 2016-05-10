@@ -5,6 +5,12 @@
 static void
 pepper_efl_shell_surface_destroy(pepper_efl_shell_surface_t *shsurf)
 {
+   pepper_efl_shell_client_t *sc;
+
+   sc = shsurf->shell_client;
+   if (sc)
+     sc->shsurf_list = eina_list_remove(sc->shsurf_list, shsurf);
+
    pepper_event_listener_remove(shsurf->surface_destroy_listener);
 
    if (shsurf->title)
@@ -29,6 +35,7 @@ handle_resource_destroy(struct wl_resource *resource)
    shsurf = wl_resource_get_user_data(resource);
    PE_CHECK(shsurf);
 
+   wl_resource_set_user_data(resource, NULL);
    pepper_efl_shell_surface_destroy(shsurf);
 }
 
@@ -234,7 +241,7 @@ static void
 xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource)
 {
    pepper_surface_t *surface = wl_resource_get_user_data(surface_resource);
-   pepper_efl_shell_client_t *shell_client = wl_resource_get_user_data(resource);
+   pepper_efl_shell_client_t *sc = wl_resource_get_user_data(resource);
    pepper_efl_shell_surface_t *shsurf;
 
    DBG("Get XDG surface");
@@ -253,9 +260,10 @@ xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource,
         goto err;
      }
 
-   shsurf->comp = shell_client->comp;
+   shsurf->comp = sc->comp;
+   shsurf->shell_client = sc;
    shsurf->surface = surface;
-   shsurf->view = pepper_compositor_add_view(shell_client->comp->pepper.comp);
+   shsurf->view = pepper_compositor_add_view(sc->comp->pepper.comp);
    if (!shsurf->view)
      {
         ERR("failed to add pepper_view");
@@ -282,6 +290,8 @@ xdg_shell_cb_surface_get(struct wl_client *client, struct wl_resource *resource,
    shsurf->shell_surface_map = shsurf_xdg_surface_map;
 
    shsurf->mapped = EINA_FALSE;
+
+   sc->shsurf_list = eina_list_append(sc->shsurf_list, shsurf);
 
    pepper_surface_set_role(surface, "xdg_surface");
 
@@ -317,44 +327,47 @@ static const struct xdg_shell_interface xdg_implementation = {
 };
 
 static void
-shell_client_destroy_handle(struct wl_listener *listener, void *data)
+shell_client_destroy_handle(struct wl_resource *resource)
 {
-   pepper_efl_shell_client_t *shell_client =
-      container_of(listener, shell_client, destroy_listener);
+   pepper_efl_shell_client_t *sc;
+   pepper_efl_shell_surface_t *shsurf;
+   Eina_List *l, *ll;
 
+   sc = wl_resource_get_user_data(resource);
    DBG("Destroy shell client");
 
-   free(shell_client);
+   EINA_LIST_FREE(sc->shsurf_list, shsurf)
+      shsurf->shell_client = NULL;
+
+   free(sc);
 }
 
 static void
 xdg_shell_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id)
 {
    pepper_efl_comp_t *comp = data;
-   pepper_efl_shell_client_t *shell_client;
+   pepper_efl_shell_client_t *sc;
 
    DBG("Bind Shell - client %p version %d", client, version);
 
-   shell_client = calloc(1, sizeof(pepper_efl_shell_client_t));
-   if (!shell_client)
+   sc = calloc(1, sizeof(pepper_efl_shell_client_t));
+   if (!sc)
      {
         wl_client_post_no_memory(client);
         return;
      }
 
-   shell_client->resource = wl_resource_create(client, &xdg_shell_interface, version, id);
-   if (!shell_client->resource)
+   sc->resource = wl_resource_create(client, &xdg_shell_interface, version, id);
+   if (!sc->resource)
      {
         wl_client_post_no_memory(client);
-        free(shell_client);
+        free(sc);
         return;
      }
 
-   wl_resource_set_implementation(shell_client->resource, &xdg_implementation, shell_client, NULL);
+   wl_resource_set_implementation(sc->resource, &xdg_implementation, sc, shell_client_destroy_handle);
 
-   shell_client->comp  = comp;
-   shell_client->destroy_listener.notify = shell_client_destroy_handle;
-   wl_client_add_destroy_listener(client, &shell_client->destroy_listener);
+   sc->comp  = comp;
 }
 
 Eina_Bool
