@@ -15,7 +15,6 @@ typedef struct pepper_efl_output pepper_efl_output_t;
 #include "log.h"
 #include "output.h"
 #include "input.h"
-#include "surface.h"
 #include "shell.h"
 #include "object.h"
 

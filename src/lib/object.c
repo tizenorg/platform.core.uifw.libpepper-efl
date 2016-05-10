@@ -27,7 +27,7 @@ _pepper_efl_object_buffer_release(Evas_Object *obj)
         pepper_buffer_unreference(po->buffer);
         po->buffer = NULL;
 
-        pepper_event_listener_remove(po->buffer_destroy_listener);
+        PE_FREE_FUNC(po->buffer_destroy_listener, pepper_event_listener_remove);
      }
 }
 
@@ -40,9 +40,6 @@ _pepper_efl_object_del(pepper_efl_object_t *po)
 
    evas_object_del(po->clip);
    evas_object_del(po->img);
-
-   if (po->es)
-     po->es->obj = NULL;
 
    free(po);
 }
@@ -451,7 +448,17 @@ _pepper_efl_object_cb_buffer_destroy(pepper_event_listener_t *listener EINA_UNUS
 
    DBG("[OBJECT] Buffer destroy: obj %p", po->smart_obj);
 
-   _pepper_efl_object_del(po);
+   if (po->shm_buffer)
+     {
+        evas_object_image_data_set(po->img, NULL);
+        po->shm_buffer = NULL;
+     }
+   else
+     {
+        evas_object_image_native_surface_set(po->img, NULL);
+     }
+
+   po->buffer = NULL;
 }
 
 static void
@@ -459,9 +466,27 @@ _pepper_efl_object_cb_surface_destroy(pepper_event_listener_t *listener EINA_UNU
 {
    pepper_efl_object_t *po = data;
 
-   po->es = NULL;
+   if (po->shm_buffer)
+     {
+        evas_object_image_data_set(po->img, NULL);
+        po->shm_buffer = NULL;
+     }
+   else
+     {
+        evas_object_image_native_surface_set(po->img, NULL);
+     }
+
+   if (po->buffer)
+     {
+        pepper_buffer_unreference(po->buffer);
+        PE_FREE_FUNC(po->buffer_destroy_listener, pepper_event_listener_remove);
+        po->buffer = NULL;
+     }
+
    po->surface = NULL;
    PE_FREE_FUNC(po->surface_destroy_listener, pepper_event_listener_remove);
+
+   evas_object_smart_callback_call(po->parent, PEPPER_EFL_OBJ_DEL, (void *)po->smart_obj);
 }
 
 static void
@@ -480,53 +505,58 @@ _pepper_efl_object_setup(pepper_efl_object_t *po)
 }
 
 Evas_Object *
-pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surface_t *surface)
+pepper_efl_object_get(pepper_efl_output_t *output, pepper_surface_t *surface)
 {
    Evas *evas;
    Evas_Object *o;
    pepper_efl_object_t *po;
 
-   _pepper_efl_smart_init();
-
-   evas = evas_object_evas_get(parent);
-   o = evas_object_smart_add(evas, _pepper_efl_smart);
-
-   po = evas_object_smart_data_get(o);
+   po = pepper_object_get_user_data((pepper_object_t *)surface, output);
    if (!po)
-     return NULL;
+     {
+        _pepper_efl_smart_init();
 
-   po->es = es;
-   po->input.ptr = es->output->comp->input->pointer;
-   po->input.kbd = es->output->comp->input->keyboard;
-   po->input.touch = es->output->comp->input->touch;
-   po->evas = evas;
-   po->parent = parent;
-   po->surface = surface;
-   po->surface_destroy_listener =
-      pepper_object_add_event_listener((pepper_object_t *)surface,
-                                       PEPPER_EVENT_OBJECT_DESTROY, 0,
-                                       _pepper_efl_object_cb_surface_destroy, po);
+        evas = evas_object_evas_get(output->win);
+        o = evas_object_smart_add(evas, _pepper_efl_smart);
+
+        po = evas_object_smart_data_get(o);
+        if (!po)
+          return NULL;
+
+        po->input.ptr = output->comp->input->pointer;
+        po->input.kbd = output->comp->input->keyboard;
+        po->input.touch = output->comp->input->touch;
+        po->evas = evas;
+        po->parent = output->win;
+        po->surface = surface;
+        po->surface_destroy_listener =
+           pepper_object_add_event_listener((pepper_object_t *)surface,
+                                            PEPPER_EVENT_OBJECT_DESTROY, 0,
+                                            _pepper_efl_object_cb_surface_destroy, po);
 
 #define EVENT_ADD(type, func)                                                    \
-   evas_object_event_callback_priority_add(o,                                    \
-                                           EVAS_CALLBACK_##type,                 \
-                                           EVAS_CALLBACK_PRIORITY_AFTER,         \
-                                           _pepper_efl_object_evas_cb_##func,    \
-                                           po);
-   EVENT_ADD(MOUSE_IN, mouse_in);
-   EVENT_ADD(MOUSE_OUT, mouse_out);
-   EVENT_ADD(MOUSE_MOVE, mouse_move);
-   EVENT_ADD(MOUSE_DOWN, mouse_down);
-   EVENT_ADD(MOUSE_UP, mouse_up);
-   EVENT_ADD(MULTI_DOWN, multi_down);
-   EVENT_ADD(MULTI_UP, multi_up);
-   EVENT_ADD(MULTI_MOVE, multi_move);
+        evas_object_event_callback_priority_add(o,                                    \
+                                                EVAS_CALLBACK_##type,                 \
+                                                EVAS_CALLBACK_PRIORITY_AFTER,         \
+                                                _pepper_efl_object_evas_cb_##func,    \
+                                                po);
+        EVENT_ADD(MOUSE_IN, mouse_in);
+        EVENT_ADD(MOUSE_OUT, mouse_out);
+        EVENT_ADD(MOUSE_MOVE, mouse_move);
+        EVENT_ADD(MOUSE_DOWN, mouse_down);
+        EVENT_ADD(MOUSE_UP, mouse_up);
+        EVENT_ADD(MULTI_DOWN, multi_down);
+        EVENT_ADD(MULTI_UP, multi_up);
+        EVENT_ADD(MULTI_MOVE, multi_move);
 
-   EVENT_ADD(FOCUS_IN, focus_in);
-   EVENT_ADD(FOCUS_OUT, focus_out);
+        EVENT_ADD(FOCUS_IN, focus_in);
+        EVENT_ADD(FOCUS_OUT, focus_out);
 #undef EVENT_ADD
 
-   return o;
+        pepper_object_set_user_data((pepper_object_t *)surface, output, po, NULL);
+     }
+
+   return po->smart_obj;
 }
 
 Eina_Bool
@@ -627,7 +657,7 @@ pepper_efl_object_render(Evas_Object *obj)
         evas_object_image_data_set(po->img, wl_shm_buffer_get_data(po->shm_buffer));
         evas_object_image_data_update_add(po->img, 0, 0, po->w, po->h);
      }
-   else
+   else if (po->buffer)
      {
         Evas_Native_Surface ns;
 
