@@ -115,35 +115,39 @@ static void
 _pepper_efl_output_repaint(void *o EINA_UNUSED, const pepper_list_t *plane_list EINA_UNUSED)
 {
    pepper_efl_output_t *output = o;
-   pepper_efl_surface_t *es;
-   Eina_List *l;
+   Evas_Object *co;
+   Eina_List *l, *ll;
 
    DBG("callback output");
 
-   EINA_LIST_FOREACH(output->update_list, l, es) {
-      pepper_efl_object_render(es->obj);
-      output->update_list = eina_list_remove_list(output->update_list, l);
-   }
+   EINA_LIST_FOREACH_SAFE(output->update_list, l, ll, co)
+     {
+        pepper_efl_object_render(co);
+        output->update_list = eina_list_remove(output->update_list, co);
+     }
 }
 
 static void
 _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, int *h)
 {
-   pepper_efl_output_t *output = o;
-   pepper_efl_surface_t *es;
+   pepper_efl_output_t *output;
+   Evas_Object *co;
    int rw = 0, rh = 0;
+   Eina_Bool res;
 
-   es = pepper_efl_surface_get(output, surface);
-   if (!es)
+   output = o;
+   co = pepper_efl_object_get(output, surface);
+   if (!co)
      {
-        ERR("failed to get pepper_efl_surface_t");
+        ERR("failed to get Evas_Object of client");
         goto end;
      }
 
-   if (!pepper_efl_surface_update(es, &rw, &rh))
+   res = pepper_efl_object_buffer_attach(co, &rw, &rh);
+   if (!res)
      goto end;
 
-   output->update_list = eina_list_append(output->update_list, es);
+   output->update_list = eina_list_append(output->update_list, co);
 
 end:
    if (w) *w = rw;

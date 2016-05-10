@@ -14,7 +14,6 @@ libpepper_efl_la_SOURCES = \
 compositor.c		\
 log.c			\
 output.c		\
-surface.c		\
 shell.c			\
 input.c			\
 object.c

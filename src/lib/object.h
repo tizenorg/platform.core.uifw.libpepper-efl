@@ -11,8 +11,6 @@ struct pepper_efl_object
    Evas_Object *img;
    Evas_Object *clip;
 
-   pepper_efl_surface_t *es;
-
    pepper_surface_t *surface;
    pepper_buffer_t *buffer;
    pepper_event_listener_t *buffer_destroy_listener;
@@ -29,7 +27,7 @@ struct pepper_efl_object
    } input;
 };
 
-Evas_Object *pepper_efl_object_add(pepper_efl_surface_t *es, Evas_Object *parent, pepper_surface_t *surface);
+Evas_Object *pepper_efl_object_get(pepper_efl_output_t *output, pepper_surface_t *surface);
 Eina_Bool    pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h);
 void         pepper_efl_object_render(Evas_Object *obj);
 
