@@ -210,7 +210,6 @@ static void
 _touch_down(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, int y)
 {
    pepper_efl_shell_surface_t *shsurf;
-   pepper_view_t *focused_view;
    int rel_x, rel_y;
 
    rel_x = x - po->x;
