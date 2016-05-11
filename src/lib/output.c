@@ -4,16 +4,9 @@
 #include <pepper-output-backend.h>
 
 static void
-_pepper_efl_output_destroy(void *o)
+_pepper_efl_output_destroy(void *o EINA_UNUSED)
 {
-   pepper_efl_output_t *output = o;
-   pepper_efl_comp_t *comp = output->comp;
-
    DBG("callback output");
-
-   PE_FREE_FUNC(output->primary_plane, pepper_plane_destroy);
-   eina_hash_del_by_data(comp->output_hash, output);
-   free(output);
 }
 
 static int32_t
@@ -257,6 +250,9 @@ err:
 void
 pepper_efl_output_destroy(pepper_efl_output_t *output)
 {
+   evas_object_event_callback_del_full(output->win, EVAS_CALLBACK_RESIZE, _pepper_efl_output_cb_window_resize, output);
+   evas_event_callback_del_full(evas_object_evas_get(output->win), EVAS_CALLBACK_RENDER_POST, _pepper_efl_output_cb_render_post, output);
+   PE_FREE_FUNC(output->primary_plane, pepper_plane_destroy);
    pepper_output_destroy(output->base);
    free(output);
 }
