@@ -6,6 +6,10 @@
 * @{
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Event name for smart callback.
  * @details This is event name for smart callback to listen add/del event of the clients
@@ -63,5 +67,9 @@ const char *pepper_efl_object_title_get(Evas_Object *obj);
 const char *pepper_efl_object_app_id_get(Evas_Object *obj);
 
 Eina_Bool   pepper_efl_object_touch_cancel(Evas_Object *obj);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
