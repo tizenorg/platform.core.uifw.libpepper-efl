@@ -6,6 +6,13 @@ EXTRA_DIST = $(datafiles_DATA)
 widgets_bindir = $(libexecdir)/libpepper-efl/samples
 widgets_bin_PROGRAMS = touch_sample thread_sample entry_sample
 
+AM_CPPFLAGS =                                \
+	-I$(top_builddir)/src/lib/           \
+	-I$(top_builddir)/src/lib/extensions \
+        -DDATA_PATH=\"$(datafilesdir)\"      \
+        -DSAMPLE_PATH=\"$(widgets_bindir)\"  \
+        @ELEMENTARY_CFLAGS@
+
 touch_sample_SOURCES = touch_sample.c
 touch_sample_CFLAGS = @ELEMENTARY_CFLAGS@
 touch_sample_LDADD = @ELEMENTARY_LIBS@
@@ -22,21 +29,13 @@ entry_sample_LDADD = @ELEMENTARY_LIBS@
 bin_PROGRAMS = pepper_efl_example pepper_efl_simple
 
 pepper_efl_example_SOURCES = pepper_efl_example.c
-pepper_efl_example_CFLAGS = 				\
-	-I$(top_builddir)/src/lib/			\
-        -DDATA_PATH=\"$(datafilesdir)\"                 \
-        -DSAMPLE_PATH=\"$(widgets_bindir)\"             \
-        @ELEMENTARY_CFLAGS@
+pepper_efl_example_CFLAGS = $(AM_CPPFLAGS)
 pepper_efl_example_LDADD = 				\
 	$(top_builddir)/src/lib/libpepper-efl.la	\
 	@ELEMENTARY_LIBS@
 
 pepper_efl_simple_SOURCES = pepper_efl_simple.c
-pepper_efl_simple_CFLAGS = 				\
-	-I$(top_builddir)/src/lib/			\
-        -DDATA_PATH=\"$(datafilesdir)\"                 \
-        -DSAMPLE_PATH=\"$(widgets_bindir)\"             \
-        @ELEMENTARY_CFLAGS@
+pepper_efl_simple_CFLAGS = $(AM_CPPFLAGS)
 pepper_efl_simple_LDADD = 				\
 	$(top_builddir)/src/lib/libpepper-efl.la	\
 	@ELEMENTARY_LIBS@

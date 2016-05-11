@@ -772,3 +772,11 @@ pepper_efl_object_touch_cancel(Evas_Object *obj)
 
    return EINA_TRUE;
 }
+
+pepper_surface_t *
+pepper_efl_object_pepper_surface_get(Evas_Object *obj)
+{
+   OBJ_DATA_GET NULL;
+
+   return po->surface;
+}

@@ -6,7 +6,7 @@ AC_INIT([libpepper-efl], [0.0.1], [shiin.lee@samsung.com])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE(1.6)
+AM_INIT_AUTOMAKE(1.6 subdir-objects)
 
 # Checks for programs.
 AC_PROG_CC

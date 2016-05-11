@@ -168,6 +168,7 @@ pepper_efl_compositor_destroy(const char *name)
    _pepper_efl_compositor_output_all_del(comp);
 
    pepper_efl_shell_shutdown();
+   tizen_policy_shutdown();
 
    PE_FREE_FUNC(comp->input, pepper_efl_input_destroy);
    PE_FREE_FUNC(comp->name, eina_stringshare_del);
@@ -256,6 +257,12 @@ pepper_efl_compositor_create(Evas_Object *win, const char *name)
         goto err_shell;
      }
 
+   if (!tizen_policy_init(comp))
+     {
+        ERR("failed to init extension");
+        goto err_extension;
+     }
+
    /* Can we use wayland_tbm_embedded_server_init() instead of it? */
    comp->tbm_server = wayland_tbm_server_init(pepper_compositor_get_display(comp->pepper.comp),
                                               NULL, -1, 0);
@@ -314,6 +321,9 @@ err_input:
    wayland_tbm_server_deinit(comp->tbm_server);
 
 err_tbm:
+   tizen_policy_shutdown();
+
+err_extension:
    pepper_efl_shell_shutdown();
 
 err_shell:

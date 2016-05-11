@@ -1,3 +1,6 @@
+#ifndef _PEPPER_EFL_PRIVATE_H_
+#define _PEPPER_EFL_PRIVATE_H_
+
 #include <stdio.h>
 
 #include <Eina.h>
@@ -74,4 +77,9 @@ struct pepper_efl_comp
 #else
 # define PE_CHECK(x)             EINA_SAFETY_ON_NULL_RETURN(x)
 # define PE_CHECK_RET(x, ret)    EINA_SAFETY_ON_NULL_RETURN_VAL(x, ret)
+#endif
+
+Eina_Bool   tizen_policy_init(pepper_efl_comp_t *comp);
+void        tizen_policy_shutdown(void);
+
 #endif

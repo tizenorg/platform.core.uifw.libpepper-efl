@@ -18,7 +18,6 @@ extern "C" {
 #define PEPPER_EFL_OBJ_ADD "add.object"
 #define PEPPER_EFL_OBJ_DEL "del.object"
 
-
 /**
  * @brief Creates the embedding compositor.
  * @since_tizen 3.0
@@ -67,6 +66,8 @@ const char *pepper_efl_object_title_get(Evas_Object *obj);
 const char *pepper_efl_object_app_id_get(Evas_Object *obj);
 
 Eina_Bool   pepper_efl_object_touch_cancel(Evas_Object *obj);
+
+#include "tizen_policy.h"
 
 #ifdef __cplusplus
 }
