@@ -105,22 +105,6 @@ _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_i
 }
 
 static void
-_pepper_efl_output_repaint(void *o EINA_UNUSED, const pepper_list_t *plane_list EINA_UNUSED)
-{
-   pepper_efl_output_t *output = o;
-   Evas_Object *co;
-   Eina_List *l, *ll;
-
-   DBG("callback output");
-
-   EINA_LIST_FOREACH_SAFE(output->update_list, l, ll, co)
-     {
-        pepper_efl_object_render(co);
-        output->update_list = eina_list_remove(output->update_list, co);
-     }
-}
-
-static void
 _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, int *h)
 {
    pepper_efl_output_t *output;
@@ -140,7 +124,7 @@ _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, in
    if (!res)
      goto end;
 
-   output->update_list = eina_list_append(output->update_list, co);
+   pepper_efl_object_render(co);
 
 end:
    if (w) *w = rw;
@@ -148,8 +132,9 @@ end:
 }
 
 static void
-_pepper_efl_output_flush_surface(void *o, pepper_surface_t *surface, pepper_bool_t *keep_buffer)
+_pepper_efl_output_flush_surface_damage(void *o, pepper_surface_t *surface, pepper_bool_t *keep_buffer)
 {
+   /* TODO */
    (void)o;
    (void)surface;
    (void)keep_buffer;
@@ -169,9 +154,9 @@ static const struct pepper_output_backend output_interface =
 
    _pepper_efl_output_assign_planes,
    _pepper_efl_output_start_repaint_loop,
-   _pepper_efl_output_repaint,
+   NULL,
    _pepper_efl_output_attach_surface,
-   _pepper_efl_output_flush_surface
+   _pepper_efl_output_flush_surface_damage
 };
 
 static void
