@@ -121,9 +121,25 @@ _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 static void
 _pepper_efl_smart_show(Evas_Object *obj)
 {
+   pepper_efl_shell_surface_t *shsurf;
+
    OBJ_DATA_GET;
 
    DBG("[OBJECT] Show: obj %p", obj);
+
+   if (!po->surface)
+     return;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   if (!shsurf->mapped)
+     {
+        shsurf->mapped = EINA_TRUE;
+        pepper_view_map(shsurf->view);
+     }
 
    evas_object_show(po->img);
    evas_object_show(po->clip);
@@ -132,9 +148,25 @@ _pepper_efl_smart_show(Evas_Object *obj)
 static void
 _pepper_efl_smart_hide(Evas_Object *obj)
 {
+   pepper_efl_shell_surface_t *shsurf;
+
    OBJ_DATA_GET;
 
    DBG("[OBJECT] Hide: obj %p", obj);
+
+   if (!po->surface)
+     return;
+
+   shsurf = pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                        pepper_surface_get_role(po->surface));
+   if (!shsurf)
+     return;
+
+   if (shsurf->mapped)
+     {
+        shsurf->mapped = EINA_FALSE;
+        pepper_view_unmap(shsurf->view);
+     }
 
    evas_object_hide(po->img);
    evas_object_hide(po->clip);

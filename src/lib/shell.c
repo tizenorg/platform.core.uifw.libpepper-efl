@@ -60,10 +60,9 @@ handle_surface_commit(pepper_event_listener_t *listener, pepper_object_t *surfac
    shsurf = data;
    PE_CHECK(shsurf);
 
-   if (!shsurf->mapped && shsurf->shell_surface_map)
-     {
-        shsurf->shell_surface_map(shsurf);
-     }
+   if ((shsurf->mapped) &&
+       (!pepper_view_is_mapped(shsurf->view)))
+     pepper_view_map(shsurf->view);
 }
 
 static void
