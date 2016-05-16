@@ -1,5 +1,5 @@
 Name:       libpepper-efl
-Version:    0.0.6
+Version:    0.0.7
 Release:    0
 Summary:    EFL backend for pepper
 License:    MIT
