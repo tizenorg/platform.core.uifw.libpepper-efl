@@ -105,6 +105,11 @@ _pepper_efl_output_cb_render_post(void *data, Evas *e EINA_UNUSED, void *event_i
 }
 
 static void
+_pepper_efl_output_repaint(void *o EINA_UNUSED, const pepper_list_t *plane_list EINA_UNUSED)
+{
+}
+
+static void
 _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, int *h)
 {
    pepper_efl_output_t *output;
@@ -154,7 +159,7 @@ static const struct pepper_output_backend output_interface =
 
    _pepper_efl_output_assign_planes,
    _pepper_efl_output_start_repaint_loop,
-   NULL,
+   _pepper_efl_output_repaint,
    _pepper_efl_output_attach_surface,
    _pepper_efl_output_flush_surface_damage
 };
