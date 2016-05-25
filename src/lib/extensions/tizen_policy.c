@@ -413,6 +413,14 @@ _tzpol_iface_cb_subsurf_place_below_parent(struct wl_client *client, struct wl_r
 }
 
 static void
+_tzpol_iface_cb_subsurf_stand_alone_set(struct wl_client *client, struct wl_resource *res_tzpol, struct wl_resource *subsurf)
+{
+   (void)client;
+   (void)res_tzpol;
+   (void)subsurf;
+}
+
+static void
 _tzpol_iface_cb_subsurface_get(struct wl_client *client, struct wl_resource *res_tzpol, uint32_t id, struct wl_resource *surface, uint32_t parent_id)
 {
    (void)client;
@@ -550,6 +558,7 @@ static const struct tizen_policy_interface _tzpol_iface =
    _tzpol_iface_cb_transient_for_unset,
    _tzpol_iface_cb_win_scrmode_set,
    _tzpol_iface_cb_subsurf_place_below_parent,
+   _tzpol_iface_cb_subsurf_stand_alone_set,
    _tzpol_iface_cb_subsurface_get,
    _tzpol_iface_cb_opaque_state_set,
    _tzpol_iface_cb_iconify,
