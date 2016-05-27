@@ -28,6 +28,7 @@ Pepper is a lightweight and flexible library for developing various types of way
 cp %{SOURCE1001} .
 
 %build
+export CFLAGS+=" -Werror "
 %autogen --enable-examples
 make %{?_smp_mflags}
 
