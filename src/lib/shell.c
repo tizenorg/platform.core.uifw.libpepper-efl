@@ -11,7 +11,11 @@ pepper_efl_shell_surface_destroy(pepper_efl_shell_surface_t *shsurf)
    if (sc)
      sc->shsurf_list = eina_list_remove(sc->shsurf_list, shsurf);
 
-   pepper_event_listener_remove(shsurf->surface_destroy_listener);
+   if (shsurf->surface_destroy_listener)
+     {
+        pepper_event_listener_remove(shsurf->surface_destroy_listener);
+        shsurf->surface_destroy_listener = NULL;
+     }
 
    if (shsurf->title)
      eina_stringshare_del(shsurf->title);
@@ -48,6 +52,10 @@ handle_surface_destroy(pepper_event_listener_t *listener, pepper_object_t *surfa
 
    shsurf = data;
    PE_CHECK(shsurf);
+
+   /* 'surface_destroy_listener' and 'user_data' of surface will be freed
+    * by caller. should be set null to avoid double free. */
+   shsurf->surface_destroy_listener = NULL;
 
    shsurf->surface = NULL;
 }
