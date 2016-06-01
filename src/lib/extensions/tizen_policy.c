@@ -575,6 +575,12 @@ static const struct tizen_policy_interface _tzpol_iface =
 };
 
 static void
+_tzpol_cb_unbind(struct wl_resource *resource)
+{
+   wl_list_remove(wl_resource_get_link(resource));
+}
+
+static void
 _tzpol_cb_bind(struct wl_client *client, void *data, uint32_t ver, uint32_t id)
 {
    struct wl_resource *resource;
@@ -589,7 +595,7 @@ _tzpol_cb_bind(struct wl_client *client, void *data, uint32_t ver, uint32_t id)
         return;
      }
 
-   wl_resource_set_implementation(resource, &_tzpol_iface, NULL, NULL);
+   wl_resource_set_implementation(resource, &_tzpol_iface, NULL, _tzpol_cb_unbind);
 
    wl_list_insert(&_tzpol_res_list, wl_resource_get_link(resource));
 }
