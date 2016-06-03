@@ -532,7 +532,8 @@ _pepper_efl_object_setup(pepper_efl_object_t *po)
 
    po->clip = evas_object_rectangle_add(po->evas);
    evas_object_smart_member_add(po->clip, po->smart_obj);
-   evas_object_resize(po->clip, 999999, 999999);
+   evas_object_move(po->clip, -100000, -100000);
+   evas_object_resize(po->clip, 200000, 200000);
    evas_object_clip_set(po->img, po->clip);
 }
 
