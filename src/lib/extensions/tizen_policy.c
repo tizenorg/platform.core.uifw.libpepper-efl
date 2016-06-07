@@ -631,10 +631,7 @@ tizen_policy_shutdown(void)
    DBG("tizen_policy::shutdown");
 
    wl_resource_for_each_safe(res, tmp, &_tzpol_res_list)
-     {
-        wl_list_remove(wl_resource_get_link(res));
-        wl_resource_destroy(res);
-     }
+      wl_resource_destroy(res);
 
    wl_global_destroy(_tzpol_global);
    _tzpol_global = NULL;
