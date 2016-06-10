@@ -19,7 +19,6 @@ typedef struct pepper_efl_output pepper_efl_output_t;
 #include "output.h"
 #include "input.h"
 #include "shell.h"
-#include "object.h"
 
 struct _Pepper_Efl_Comp
 {
@@ -79,7 +78,14 @@ struct _Pepper_Efl_Comp
 # define PE_CHECK_RET(x, ret)    EINA_SAFETY_ON_NULL_RETURN_VAL(x, ret)
 #endif
 
-Eina_Bool   tizen_policy_init(Pepper_Efl_Comp *comp);
-void        tizen_policy_shutdown(void);
+/* Internal 'pepper_efl_object' */
+Evas_Object       *pepper_efl_object_add(pepper_efl_output_t *output, pepper_surface_t *surface);
+pepper_surface_t  *pepper_efl_object_pepper_surface_get(Evas_Object *obj);
+void               pepper_efl_object_render(Evas_Object *obj);
+Eina_Bool          pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h);
+
+/* Internal 'tizen_policy' */
+Eina_Bool    tizen_policy_init(Pepper_Efl_Comp *comp);
+void         tizen_policy_shutdown(void);
 
 #endif

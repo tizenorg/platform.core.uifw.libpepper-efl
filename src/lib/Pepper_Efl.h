@@ -39,33 +39,7 @@ const char  *pepper_efl_compositor_create(Evas_Object *win, const char *name);
  */
 Eina_Bool    pepper_efl_compositor_destroy(const char *name);
 
-/**
- * @brief Get pid of the client
- * @since_tizen 3.0
- * @param[in] obj Evas object which is returned from libpepper-efl
- * @return pid on success, @c 0 otherwise
- */
-pid_t       pepper_efl_object_pid_get(Evas_Object *obj);
-
-/**
- * @brief Get title of the client
- * @since_tizen 3.0
- * @param[in] obj Evas object which is returned from libpepper-efl
- * @return title on success, @c NULL otherwise
- *             title should NOT be freed after use.
- */
-const char *pepper_efl_object_title_get(Evas_Object *obj);
-
-/**
- * @brief Get app_id of the client
- * @since_tizen 3.0
- * @param[in] obj Evas object which is returned from libpepper-efl
- * @return app_id on success, @c NULL otherwise
- *             title should NOT be freed after use.
- */
-const char *pepper_efl_object_app_id_get(Evas_Object *obj);
-
-Eina_Bool   pepper_efl_object_touch_cancel(Evas_Object *obj);
+#include "pepper_object.eo.h"
 
 #include "tizen_policy.h"
 

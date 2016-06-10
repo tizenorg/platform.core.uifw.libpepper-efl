@@ -10,14 +10,21 @@ Source1001: %{name}.manifest
 
 BuildRequires: pkgconfig(wayland-server)
 BuildRequires: pkgconfig(pepper)
-BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(xdg-shell-server)
 BuildRequires: pkgconfig(xkbcommon)
 BuildRequires: pkgconfig(tizen-extension-client)
-BuildRequires: pkgconfig(ecore-wayland)
 BuildRequires: pkgconfig(wayland-tbm-server)
 BuildRequires: pkgconfig(wayland-tbm-client)
 Requires: libwayland-extension-server
+
+# EFL
+BuildRequires: pkgconfig(eo)
+BuildRequires: pkgconfig(eina)
+BuildRequires: pkgconfig(ecore-input)
+BuildRequires: pkgconfig(ecore-wayland)
+BuildRequires: pkgconfig(evas)
+BuildRequires: pkgconfig(elementary)
+BuildRequires: eolian-devel
 
 %description
 EFL backend for pepper.

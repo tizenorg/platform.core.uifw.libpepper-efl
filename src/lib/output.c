@@ -118,7 +118,7 @@ _pepper_efl_output_attach_surface(void *o, pepper_surface_t *surface, int *w, in
    Eina_Bool res;
 
    output = o;
-   co = pepper_efl_object_get(output, surface);
+   co = pepper_efl_object_add(output, surface);
    if (!co)
      {
         ERR("failed to get Evas_Object of client");
