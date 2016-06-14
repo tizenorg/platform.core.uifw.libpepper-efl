@@ -1,0 +1,17 @@
+class Pepper.Efl.Comp (Elm.Win)
+{
+   eo_prefix: pepper_efl_comp;
+   legacy_prefix: pepper_efl_compositor;
+   implements {
+      Eo.Base.constructor;
+      Eo.Base.finalize;
+      Eo.Base.destructor;
+      Elm.Win.name.set;
+      Elm.Win.type.set;
+   }
+   events {
+      add,object;
+      del,object;
+   }
+}
+

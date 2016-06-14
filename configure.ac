@@ -93,7 +93,7 @@ AC_ARG_ENABLE([examples],
 AM_CONDITIONAL([BUILD_EXAMPLES], [test "${want_build_examples}" = "yes"])
 
 # Needs to be moved into a macro, and also, needs a way to automatically fetch from all the dependencies using the Requires.
-DEPS_EOLIAN_FLAGS=`${PKG_CONFIG} --variable=eolian_flags eo evas efl`
+DEPS_EOLIAN_FLAGS=`${PKG_CONFIG} --variable=eolian_flags eo evas efl elementary`
 AC_SUBST([DEPS_EOLIAN_FLAGS])
 
 EFL_WITH_BIN([eolian], [eolian-gen], [eolian_gen])

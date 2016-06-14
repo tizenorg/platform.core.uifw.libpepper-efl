@@ -42,9 +42,12 @@ libpeppereflinclude_HEADERS = \
    pepper_object.eo.legacy.h  \
    extensions/tizen_policy.h
 
-BUILT_SOURCES =               \
-   pepper_object.eo.c         \
-   pepper_object.eo.h         \
+BUILT_SOURCES =                        \
+   pepper_efl_comp.eo.c          \
+   pepper_efl_comp.eo.h          \
+   pepper_efl_comp.eo.legacy.h   \
+   pepper_object.eo.c                  \
+   pepper_object.eo.h                  \
    pepper_object.eo.legacy.h
 
 CLEANFILES += $(BUILT_SOURCES)
