@@ -76,17 +76,6 @@ _pepper_efl_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 }
 
 static void
-_pepper_efl_object_cb_shell_configure_done(void *data, int w, int h)
-{
-   Evas_Object *img = data;
-
-   DBG("[OBJECT] Callback configure done: w %d, h %d", w, h);
-
-   evas_object_image_size_set(img, w, h);
-   evas_object_resize(img, w, h);
-}
-
-static void
 _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 {
    pepper_efl_shell_surface_t *shsurf = NULL;
@@ -98,24 +87,16 @@ _pepper_efl_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
    if (!po->img)
      return;
 
-   if (po->surface)
-     {
-        shsurf =
-           pepper_object_get_user_data((pepper_object_t *)po->surface,
-                                       pepper_surface_get_role(po->surface));
-     }
+   if (!po->surface)
+     return;
 
+   shsurf =
+      pepper_object_get_user_data((pepper_object_t *)po->surface,
+                                  pepper_surface_get_role(po->surface));
    if (!shsurf)
-     {
-        evas_object_image_size_set(po->img, w, h);
-        evas_object_resize(po->img, w, h);
-     }
-   else
-     {
-        pepper_efl_shell_configure(shsurf, w, h,
-                                   _pepper_efl_object_cb_shell_configure_done,
-                                   po->img);
-     }
+     return;
+
+   pepper_efl_shell_configure(shsurf, w, h, NULL, NULL);
 }
 
 static void
@@ -637,25 +618,11 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
 
         bw = wl_shm_buffer_get_width(shm_buffer);
         bh = wl_shm_buffer_get_height(shm_buffer);
-
-        if ((po->w != bw) || (po->h != bh))
-          {
-             po->w = bw;
-             po->h = bh;
-             evas_object_resize(obj, bw, bh);
-          }
      }
    else if ((tbm_surface = wayland_tbm_server_get_surface(NULL, buf_res)))
      {
        bw = tbm_surface_get_width(tbm_surface);
        bh = tbm_surface_get_height(tbm_surface);
-
-        if ((po->w != bw) || (po->h != bh))
-          {
-             po->w = bw;
-             po->h = bh;
-             evas_object_resize(obj, bw, bh);
-          }
      }
    else
      {
@@ -668,6 +635,14 @@ pepper_efl_object_buffer_attach(Evas_Object *obj, int *w, int *h)
      {
         _pepper_efl_object_setup(po);
         evas_object_smart_callback_call(po->parent, PEPPER_EFL_OBJ_ADD, (void *)obj);
+     }
+
+   if ((po->w != bw) || (po->h != bh))
+     {
+        evas_object_resize(po->img, bw, bh);
+        evas_object_image_size_set(po->img, bw, bh);
+        po->w = bw;
+        po->h = bh;
      }
 
    if (w) *w = bw;
