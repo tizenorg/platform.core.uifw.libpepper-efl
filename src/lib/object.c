@@ -279,6 +279,15 @@ _touch_move(pepper_efl_object_t *po, unsigned int timestamp, int device, int x, 
    if ((!_need_send_motion) && (!_need_send_released))
      return;
 
+   /* NOTE
+    * We need to add point here to send motion event before touch down.
+    * if do not, client doesn't know the position where touch down occur.
+    * This is how EFL translate touch event for now.
+    * I have no idea the other toolkit also does...
+    * if there already exist point, the API, pepper_touch_add_point has no effect.
+    * point will be removed when touch up or cancel is happen.
+    */
+   pepper_touch_add_point(po->input.touch, device, rel_x, rel_y);
    pepper_touch_send_motion(po->input.touch, shsurf->view, timestamp, device, rel_x, rel_y);
 }
 
